@@ -1,3 +1,29 @@
+/*
+ * @file Sensor_Module.cpp
+ *
+ * @author Nathan Hui, nthui@eng.ucsd.edu
+ *
+ * @description Radio Telemetry Tracker UI Core
+ *
+ *
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * DATE      Name  Description
+ * --------  ----  -----------------------------------------------------------
+ * 02/25/20  NH    Added measure vCC
+ */
 #ifndef __SENSOR_MODULE__
 #define __SENSOR_MODULE__
 
@@ -104,6 +130,12 @@ class Sensor_Module{
 		 *             terminating null character.
 		 */
 		int getPacket(char* buf, size_t len);
+
+		/**
+		 * Measures the VCC pin.
+		 * @return	VCC in mV
+		 */
+		uint16_t measureVCC();
 };
 
 #endif

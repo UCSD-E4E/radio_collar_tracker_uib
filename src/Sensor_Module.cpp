@@ -22,7 +22,8 @@
  *
  * DATE      Name  Description
  * --------  ----  -----------------------------------------------------------
- * 02/25/20  NH    Fixed Sensor Module constructor and reformatted
+ * 02/25/20  NH    Fixed Sensor Module constructor and reformatted, added
+ * 					measure vCC
  */
 #include "Sensor_Module.hpp"
 #include "HMC5983.hpp"
@@ -167,4 +168,31 @@ int Sensor_Module::getPacket(char *buf, size_t len) {
 			(long) (packet.lat * 1e7), (long) (packet.lon * 1e7), packet.hdg,
 			packet.time, ((packet.run) ? RUN_TRUE : RUN_FALSE),
 			(int) packet.fix, packet.sat, packet.date);
+}
+
+uint16_t Sensor_Module::measureVCC(){
+	// Read 1.1V reference against AVcc
+	// set the reference to Vcc and the measurement to the internal 1.1V reference
+#if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+#elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+	ADMUX = _BV(MUX5) | _BV(MUX0);
+#elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+	ADMUX = _BV(MUX3) | _BV(MUX2);
+#else
+	ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+#endif
+
+	delay(2); // Wait for Vref to settle
+	ADCSRA |= _BV(ADSC); // Start conversion
+	while (bit_is_set(ADCSRA, ADSC))
+		; // measuring
+
+	uint8_t low = ADCL; // must read ADCL first - it then locks ADCH
+	uint8_t high = ADCH; // unlocks both
+
+	long result = (high << 8) | low;
+
+	result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
+	return result; // Vcc in millivolts
 }
