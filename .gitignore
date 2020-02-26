@@ -27,3 +27,9 @@ callgrind.out.*
 oprofile_data
 doxygen-doc
 **.svg
+*.a
+*.elf
+*.hex
+*.cproject
+*.project
+*.settings
