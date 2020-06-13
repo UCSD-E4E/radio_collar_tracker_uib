@@ -1,5 +1,5 @@
 /*
- * @fle io_core.c
+ * @file ui_core.c
  *
  * @author Nathan Hui, nthui@eng.ucsd.edu
  *
@@ -19,6 +19,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * DATE      Name  Description
+ * --------  ----  -----------------------------------------------------------
+ * 02/25/20  NH    Added HAL System descriptor
  */
 #include <Arduino.h>
 #include <stdio.h>
@@ -32,7 +36,7 @@
 #define SLEEP_TIME 100
 
 uint8_t count = 0;
-uint8_t blueState = 0, 
+uint8_t blueState = 0,
 	redState = 0, 
 	orangeState = 0, 
 	yellowState = 0, 
@@ -43,6 +47,8 @@ Sensor_Module sensor(&status.gps);
 Status_Module obc(&status);
 
 LED blue, red, orange, yellow, green;
+RCT_HAL_System_t systemDescriptor;
+RCT_HAL_System_t* pHALSystem = NULL;
 
 // write interrupt handler (happens everything timer interrupt happens)
 // Figure out how to configure timer to 5 hz, set leds at 5hz only if handler called
@@ -54,6 +60,9 @@ inline void blink(uint8_t pin){
 }
 
 void setup() {
+	pHALSystem = &systemDescriptor;
+	pHALSystem->RCT_SerialOBC = &Serial;
+	pHALSystem->RCT_SerialGPS = &Serial1;
 	Serial.begin(9600); // via USB
 	Serial1.begin(9600); // GPS
 	// Set up LEDs
@@ -127,16 +136,16 @@ LEDState sdr_map[4] {FAST, ON, OFF, SLOW};
 LEDState gps_map[4] {FAST, ON, OFF, SLOW};
 
 void loop() {
-	if (Serial1.available() > 0){
-		char c = Serial1.read();
+	if (pHALSystem->RCT_SerialGPS->available() > 0){
+		char c = pHALSystem->RCT_SerialGPS->read();
 		if(sensor.decode(c)){
 			sensor.getPacket(sensor_packet_buf, SENSOR_PACKET_MAX_LEN);
-			Serial.println(sensor_packet_buf);
+			pHALSystem->RCT_SerialOBC->println(sensor_packet_buf);
 		}
 	}
 
-	if(Serial.available() > 0){
-		char c = Serial.read();
+	if(pHALSystem->RCT_SerialOBC->available() > 0){
+		char c = pHALSystem->RCT_SerialOBC->read();
 		if(obc.decode(c)){
 			
 			blue.ledstate = system_map[status.system];
@@ -149,7 +158,6 @@ void loop() {
 				&& status.sdr == SDR_READY
 				&& status.gps == GPS_READY ) {
 				green.ledstate = ON;
-				// Serial.println( "green" );
 			}
 		}
 	}
