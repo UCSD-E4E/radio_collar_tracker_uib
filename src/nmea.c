@@ -28,6 +28,8 @@
  * Includes
  ******************************************************************************/
 #include "nmea.h"
+#include <stdio.h>
+#include <string.h>
 
 /******************************************************************************
  * Defines
@@ -67,5 +69,161 @@ void NMEA_Init(NMEA_Config_t* pConfig)
  */
 NMEA_Message_e NMEA_Decode(char c)
 {
-	return NMEA_MESSAGE_NONE;
+	static int counter = -1;
+	static char *ptr1;
+	static char *ptr2;
+	static char next_expected_char = 0;
+	printf("counter = %d, c = %c\n", counter, c);
+	counter++;
+	if(!counter)
+	{
+		if(c == '$')
+		{
+			return NMEA_MESSAGE_NONE;
+		}
+		else
+		{
+			return NMEA_MESSAGE_ERROR;
+		}
+	}
+	else if(counter == 1 || counter == 2)
+	{
+		return NMEA_MESSAGE_NONE;
+	}
+	else if(counter == 3)
+	{
+		ptr1 = strchr("GRZV", c);
+        if(ptr1 == NULL)
+        {
+            return NMEA_MESSAGE_ERROR;
+        }
+        else
+        {
+        	return NMEA_MESSAGE_NONE;
+        }
+    }
+    else if(counter == 4)
+    {
+        switch(*ptr1)
+        {
+        	case 'G':
+                ptr2 = strchr("GLS", c);
+        	 	if(ptr2 == NULL)
+        		{
+        		    return NMEA_MESSAGE_ERROR;
+        		}
+        		else
+        		{
+        			return NMEA_MESSAGE_NONE;
+        		}
+        		break;
+        	case 'R':
+        	    if(c == 'M')
+        	    {
+        		    next_expected_char = 'C';
+        		    return NMEA_MESSAGE_NONE;
+        	    }
+        	    else
+        	    {
+        	    	return NMEA_MESSAGE_ERROR;
+        	    }
+        		break;
+        	case 'Z':
+        	    if(c == 'D')
+        	    {
+        		    next_expected_char = 'A';
+        		    return NMEA_MESSAGE_NONE;
+        	    }
+        	    else
+        	    {
+        	    	return NMEA_MESSAGE_ERROR;
+        	    }
+        		break;
+        	case 'V':
+        	    if(c == 'T')
+        	    {
+        		    next_expected_char = 'G';
+        		    return NMEA_MESSAGE_NONE;
+        	    }
+        	    else
+        	    {
+        	    	return NMEA_MESSAGE_ERROR;
+        	    }
+        		break;
+        }
+    }
+    else if(counter == 5)
+    {
+    	if(next_expected_char == 0)
+    	{
+    		if(*ptr2 == 'G' && c == 'A')
+    		{
+    			return NMEA_MESSAGE_GGA;
+    		}
+    		else if(*ptr2 == 'L' && c == 'L')
+    		{
+    			return NMEA_MESSAGE_GLL;
+    		}
+    		else if(*ptr2 == 'S' && c == 'V')
+    		{
+    			return NMEA_MESSAGE_GSV;
+    		}
+    		else
+    		{
+    			return NMEA_MESSAGE_ERROR;
+    		}
+    	}
+    	else if(next_expected_char == c)
+    	{
+    		if(c == 'C')
+    		{
+    			return NMEA_MESSAGE_RMC;
+    		}
+    		else if(c == 'A')
+    		{
+    			return NMEA_MESSAGE_ZDA;
+    		}
+    		else if(c == 'G')
+    		{
+    			return NMEA_MESSAGE_VTG;
+    		}
+    	}
+    	else
+    	{
+    		return NMEA_MESSAGE_ERROR;
+    	}
+    }
+    else
+    {
+    	return NMEA_MESSAGE_ERROR;
+    }
+	return NMEA_MESSAGE_ERROR;
+}
+
+/* Decoder using entire string */
+NMEA_TYPE_t nmea_type_table[] = 
+{
+	{"GGA", NMEA_MESSAGE_GGA},
+	{"GLL", NMEA_MESSAGE_GLL},
+	{"GSV", NMEA_MESSAGE_GSV},
+	{"RMC", NMEA_MESSAGE_RMC},
+	{"ZDA", NMEA_MESSAGE_ZDA},
+	{"VTG", NMEA_MESSAGE_VTG}
+};
+
+NMEA_Message_e NMEA_Decode2(char *string)
+{
+	char str[256];
+    char *token;
+    const char delimiter[2] = ",";
+    strcpy(str, string);
+    token = strtok(str, delimiter);
+    for(int i = 0; i < sizeof(nmea_type_table)/sizeof(nmea_type_table[0]); i++)
+    {
+    	if(!strcmp(&token[3], nmea_type_table[i].name))
+    	{
+    		return nmea_type_table[i].type;
+    	}
+    }
+    return NMEA_MESSAGE_ERROR;
 }
