@@ -1,5 +1,5 @@
-nmea: main.c nmea.c
-	gcc main.c nmea.c -o nmea
+nmea: main.c nmea.c strtok_e.c
+	gcc main.c nmea.c strtok_e.c -o nmea
 
 clean:
 	rm *.o nmea
@@ -9,3 +9,6 @@ nmea.o: nmea.c nmea.h
 
 main.o: main.c
 	gcc -c main.c
+
+strtok_e.o: strtok_e.c
+	gcc -c strtok_e.c

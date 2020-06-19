@@ -67,163 +67,158 @@ void NMEA_Init(NMEA_Config_t* pConfig)
  * @param  c Character to parse
  * @return   NMEA_Message_e denoting message detected
  */
+char dataID;
+char talkerID;
+
 NMEA_Message_e NMEA_Decode(char c)
 {
-	static int counter = -1;
-	static char *ptr1;
-	static char *ptr2;
-	static char next_expected_char = 0;
-	printf("counter = %d, c = %c\n", counter, c);
-	counter++;
-	if(!counter)
-	{
-		if(c == '$')
-		{
-			return NMEA_MESSAGE_NONE;
-		}
-		else
-		{
-			return NMEA_MESSAGE_ERROR;
-		}
-	}
-	else if(counter == 1 || counter == 2)
-	{
-		return NMEA_MESSAGE_NONE;
-	}
-	else if(counter == 3)
-	{
-		ptr1 = strchr("GRZV", c);
-        if(ptr1 == NULL)
-        {
-            return NMEA_MESSAGE_ERROR;
-        }
-        else
-        {
-        	return NMEA_MESSAGE_NONE;
-        }
-    }
-    else if(counter == 4)
-    {
-        switch(*ptr1)
-        {
-        	case 'G':
-                ptr2 = strchr("GLS", c);
-        	 	if(ptr2 == NULL)
-        		{
-        		    return NMEA_MESSAGE_ERROR;
-        		}
-        		else
-        		{
-        			return NMEA_MESSAGE_NONE;
-        		}
-        		break;
-        	case 'R':
-        	    if(c == 'M')
-        	    {
-        		    next_expected_char = 'C';
-        		    return NMEA_MESSAGE_NONE;
-        	    }
-        	    else
-        	    {
-        	    	return NMEA_MESSAGE_ERROR;
-        	    }
-        		break;
-        	case 'Z':
-        	    if(c == 'D')
-        	    {
-        		    next_expected_char = 'A';
-        		    return NMEA_MESSAGE_NONE;
-        	    }
-        	    else
-        	    {
-        	    	return NMEA_MESSAGE_ERROR;
-        	    }
-        		break;
-        	case 'V':
-        	    if(c == 'T')
-        	    {
-        		    next_expected_char = 'G';
-        		    return NMEA_MESSAGE_NONE;
-        	    }
-        	    else
-        	    {
-        	    	return NMEA_MESSAGE_ERROR;
-        	    }
-        		break;
-        }
-    }
-    else if(counter == 5)
-    {
-    	if(next_expected_char == 0)
-    	{
-    		if(*ptr2 == 'G' && c == 'A')
-    		{
-    			return NMEA_MESSAGE_GGA;
-    		}
-    		else if(*ptr2 == 'L' && c == 'L')
-    		{
-    			return NMEA_MESSAGE_GLL;
-    		}
-    		else if(*ptr2 == 'S' && c == 'V')
-    		{
-    			return NMEA_MESSAGE_GSV;
-    		}
-    		else
-    		{
-    			return NMEA_MESSAGE_ERROR;
-    		}
-    	}
-    	else if(next_expected_char == c)
-    	{
-    		if(c == 'C')
-    		{
-    			return NMEA_MESSAGE_RMC;
-    		}
-    		else if(c == 'A')
-    		{
-    			return NMEA_MESSAGE_ZDA;
-    		}
-    		else if(c == 'G')
-    		{
-    			return NMEA_MESSAGE_VTG;
-    		}
-    	}
-    	else
-    	{
-    		return NMEA_MESSAGE_ERROR;
-    	}
-    }
-    else
-    {
-    	return NMEA_MESSAGE_ERROR;
-    }
-	return NMEA_MESSAGE_ERROR;
-}
+    static state_e decodeState = START;
+    static NMEA_Message_e message = NMEA_MESSAGE_NONE;
+    static char checksum = 0;
+    static int end_checksum = 0;
+    static int counter = 0;
+    static int char_count = 0;
+    static char sum[3] = {0, 0, 0};
+    static char *ptr1;
+    static char *ptr2;
+    static char next_expected_char = 0;
 
-/* Decoder using entire string */
-NMEA_TYPE_t nmea_type_table[] = 
-{
-	{"GGA", NMEA_MESSAGE_GGA},
-	{"GLL", NMEA_MESSAGE_GLL},
-	{"GSV", NMEA_MESSAGE_GSV},
-	{"RMC", NMEA_MESSAGE_RMC},
-	{"ZDA", NMEA_MESSAGE_ZDA},
-	{"VTG", NMEA_MESSAGE_VTG}
-};
-
-NMEA_Message_e NMEA_Decode2(char *string)
-{
-	char str[256];
-    char *token;
-    const char delimiter[2] = ",";
-    strcpy(str, string);
-    token = strtok(str, delimiter);
-    for(int i = 0; i < sizeof(nmea_type_table)/sizeof(nmea_type_table[0]); i++)
+    if(c != '$')
     {
-    	if(!strcmp(&token[3], nmea_type_table[i].name))
-    	{
-    		return nmea_type_table[i].type;
-    	}
+        if(c == '*')
+        {
+            end_checksum = 1;
+        }
+        if(!end_checksum)
+        {
+            checksum ^= c;
+        }
     }
-    return NMEA_MESSAGE_ERROR;
+
+    switch(decodeState)
+    {
+        case START:
+            if(c == '$')
+            {
+                decodeState = DATA_ID;
+            }
+            else
+            {
+                decodeState = START;
+            }
+            break;
+        case DATA_ID:
+            dataID = c;
+            decodeState = TALKER_ID;
+            break;
+        case TALKER_ID:
+            talkerID = c;
+            decodeState = MESSAGE_TYPE;
+            counter = 0;
+            break;
+        case MESSAGE_TYPE:
+            switch(counter)
+            {
+                case 0:
+                    ptr1 = strchr("GRZV", c);
+                    counter = 1;
+                    break;
+                case 1:
+                    switch(*ptr1)
+                    {
+                        case 'G':
+                            counter = 2;
+                            ptr2 = strchr("GLS", c);
+                            break;
+                        case 'R':
+                            counter = 2;
+                            if(c == 'M')
+                            {
+                                next_expected_char = 'C';
+                            }
+                            break;
+                        case 'Z':
+                            counter = 2;
+                            if(c == 'D')
+                            {
+                                next_expected_char = 'A';
+                            }
+                            break;
+                        case 'V':
+                            counter = 2;
+                            if(c == 'T')
+                            {
+                                next_expected_char = 'G';
+                            }
+                            break;
+                    }
+                    break;
+                case 2:
+                    if(next_expected_char == 0)
+                    {
+                        if(*ptr2 == 'G' && c == 'A')
+                        {
+                            message = NMEA_MESSAGE_GGA;
+                        }
+                        else if(*ptr2 == 'L' && c == 'L')
+                        {
+                            message = NMEA_MESSAGE_GLL;
+                        }
+                        else if(*ptr2 == 'S' && c == 'V')
+                        {
+                            message = NMEA_MESSAGE_GSV;
+                        }
+                    }
+                    else if(next_expected_char == c)
+                    {
+                        if(c == 'C')
+                        {
+                            message = NMEA_MESSAGE_RMC;
+                        }
+                        else if(c == 'A')
+                        {
+                            message = NMEA_MESSAGE_ZDA;
+                        }
+                        else if(c == 'G')
+                        {
+                            message = NMEA_MESSAGE_VTG;
+                        }
+                    }
+                    decodeState = FIELDS;
+                    break;
+            }
+            break;
+        case FIELDS:
+            if(c == '*')
+            {
+                decodeState = CHECKSUM;
+            }
+            else
+            {
+                decodeState = FIELDS;
+            }
+            break;
+        case CHECKSUM:
+            sum[char_count++] = c;
+            if(char_count == 2)
+            {
+                int read_checksum;
+                /* %x makes read_checksum hexadecimal */
+                sscanf(sum, "%x", &read_checksum);
+                if(checksum == read_checksum)
+                {
+                    decodeState = START;
+                    return message;
+                }
+                else
+                {
+                    return NMEA_MESSAGE_ERROR;
+                }
+            }
+            break;
+        default:
+            decodeState = START;
+            break;
+    }
+    return NMEA_MESSAGE_NONE;
 }

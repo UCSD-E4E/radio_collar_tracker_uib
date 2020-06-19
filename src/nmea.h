@@ -53,6 +53,16 @@ typedef enum NMEA_Message_
                                          corrupted or invalid */
 }NMEA_Message_e;
 
+typedef enum state_
+{
+    START,
+    DATA_ID,
+    TALKER_ID,
+    MESSAGE_TYPE,
+    FIELDS,
+    CHECKSUM
+} state_e;
+
 /**
  * NMEA Configuration Structure
  */
@@ -119,11 +129,6 @@ typedef union NMEA_Data_{
 
 extern NMEA_Data_u NMEA_Data;
 
-typedef struct NMEA_TYPE_
-{
-    char name[4];
-    NMEA_Message_e type;
-} NMEA_TYPE_t;
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
@@ -138,7 +143,6 @@ void NMEA_Init(NMEA_Config_t* pConfig);
  * @return   NMEA_Message_e denoting message detected
  */
 NMEA_Message_e NMEA_Decode(char c);
-NMEA_Message_e NMEA_Decode2(char *string);
 
 
 #endif /* __NMEA_H__ */
