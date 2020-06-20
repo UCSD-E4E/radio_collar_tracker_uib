@@ -14,8 +14,8 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
-
+    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+    const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
     for(i = 0; i < strlen(nmeaString); i++)
@@ -48,9 +48,9 @@ int main(int argc, char const *argv[])
                 printf("token = %s\n", token);
                 if(token == NULL)
                 {
-                    GGA.fixHour = 0;
-                    GGA.fixMinute = 0;
-                    GGA.fixSecond = 0;
+                    GGA.fixHour = 0xFF;
+                    GGA.fixMinute = 0xFF;
+                    GGA.fixSecond = 0xFF;
                 }
                 else
                 {
@@ -201,6 +201,101 @@ int main(int argc, char const *argv[])
                     sscanf(token, "%d", &GGA.dGpsID);
                 }
                 printf("dGpsID = %d\n", GGA.dGpsID);
+                break;
+            }
+            case NMEA_MESSAGE_GLL:
+            {
+                printf("NMEA_MESSAGE_GLL\n");
+                NMEA_GLL_t GLL;
+                char str[256];
+                char* token;
+                char delimiter = ',';
+                /*copy nmeaString to temp buffer*/
+                strcpy(str, nmeaString);
+
+                /*find nmea type*/
+                token = strtok_e(str, delimiter);
+                printf("token = %s\n", token);
+
+                /*store talkerID*/
+                GLL.talkerID = token[2];
+
+                /*equation for GGA latitude/longitude: first 2 digits + last 4/60*/
+                /*find and store latitude*/
+                int temp_int;
+                float temp_frac;
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(token == NULL)
+                {
+                    GLL.latitude = 0;
+                }
+                else
+                {
+                    sscanf(token, "%2d%f", &temp_int, &temp_frac);
+                    printf("temp_int = %d\n", temp_int);
+                    printf("temp_frac = %f\n", temp_frac);
+                    GLL.latitude = temp_int + temp_frac/60;
+                }
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(GLL.latitude != 0 && token[0] == 'S')
+                {
+                    GLL.latitude = -1 * GLL.latitude;
+                }
+                printf("latitude = %f\n", GLL.latitude);
+
+                /*find and store longitude*/
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(token == NULL)
+                {
+                    GLL.longitude = 0;
+                }
+                else
+                {
+                    sscanf(token, "%3d%f", &temp_int, &temp_frac);
+                    printf("temp_int = %d\n", temp_int);
+                    printf("temp_frac = %f\n", temp_frac);
+                    GLL.longitude = temp_int + temp_frac/60;
+                }
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(GLL.longitude != 0 && token[0] == 'W')
+                {
+                    GLL.longitude = -1 * GLL.longitude;
+                }
+                printf("longitude = %f\n", GLL.longitude);
+
+                /*find and store hour minute second*/
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(token == NULL)
+                {
+                    GLL.fixHour = 0xFF;
+                    GLL.fixMinute = 0xFF;
+                    GLL.fixSecond = 0xFF;
+                }
+                else
+                {
+                    sscanf(token, "%2d%2d%2d", &GLL.fixHour, &GLL.fixMinute, &GLL.fixSecond);
+                }
+                printf("fixHour = %d\n", GLL.fixHour);
+                printf("fixMinute = %d\n", GLL.fixMinute);
+                printf("fixSecond = %d\n", GLL.fixSecond);
+
+                /*find and store fixType*/
+                token = strtok_e(NULL, delimiter);
+                printf("token = %s\n", token);
+                if(token == NULL)
+                {
+                    GLL.fixType = '\0';
+                }
+                else
+                {
+                    GLL.fixType = token[0];
+                }
+                printf("fixType = %c\n", GLL.fixType);
                 break;
             }
             case NMEA_MESSAGE_ERROR:
