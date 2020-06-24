@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
-extern char *strtok_e(char *str, char delim);
+extern NMEA_GGA_t GGA;
 
 int main(int argc, char const *argv[])
 {
@@ -14,8 +14,7 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
-    const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
+    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
     for(i = 0; i < strlen(nmeaString); i++)
@@ -25,277 +24,23 @@ int main(int argc, char const *argv[])
             case NMEA_MESSAGE_NONE:
             {
                 continue;
-            }           
+            }
             case NMEA_MESSAGE_GGA:
             {
-                printf("NMEA_MESSAGE_GGA\n");
-                NMEA_GGA_t GGA;
-                char str[256];
-                char* token;
-                char delimiter = ',';
-                /*copy nmeaString to temp buffer*/
-                strcpy(str, nmeaString);
-
-                /*find nmea type*/
-                token = strtok_e(str, delimiter);
-                printf("token = %s\n", token);
-
-                /*store talkerID*/
-                GGA.talkerID = token[2];
-
-                /*find and store hour minute second*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.fixHour = 0xFF;
-                    GGA.fixMinute = 0xFF;
-                    GGA.fixSecond = 0xFF;
-                }
-                else
-                {
-                    sscanf(token, "%2d%2d%2d", &GGA.fixHour, &GGA.fixMinute, &GGA.fixSecond);
-                }
+                printf("talkerID = %c\n", GGA.talkerID);
                 printf("fixHour = %d\n", GGA.fixHour);
                 printf("fixMinute = %d\n", GGA.fixMinute);
                 printf("fixSecond = %d\n", GGA.fixSecond);
-
-                /*equation for GGA latitude/longitude: first 2 digits + last 4/60*/
-                /*find and store latitude*/
-                int temp_int;
-                float temp_frac;
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.latitude = 0;
-                }
-                else
-                {
-                    sscanf(token, "%2d%f", &temp_int, &temp_frac);
-                    printf("temp_int = %d\n", temp_int);
-                    printf("temp_frac = %f\n", temp_frac);
-                    GGA.latitude = temp_int + temp_frac/60;
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(GGA.latitude != 0 && token[0] == 'S')
-                {
-                    GGA.latitude = -1 * GGA.latitude;
-                }
                 printf("latitude = %f\n", GGA.latitude);
-
-                /*find and store longitude*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.longitude = 0;
-                }
-                else
-                {
-                    sscanf(token, "%3d%f", &temp_int, &temp_frac);
-                    printf("temp_int = %d\n", temp_int);
-                    printf("temp_frac = %f\n", temp_frac);
-                    GGA.longitude = temp_int + temp_frac/60;
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(GGA.longitude != 0 && token[0] == 'W')
-                {
-                    GGA.longitude = -1 * GGA.longitude;
-                }
                 printf("longitude = %f\n", GGA.longitude);
-
-                /*find and store fixQuality*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.fixQuality = 0;
-                }
-                else
-                {
-                    sscanf(token, "%d", &GGA.fixQuality);
-                }
                 printf("fixQuality = %d\n", GGA.fixQuality);
-
-                /*find and store nSatellites*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.nSatellites = 0;
-                }
-                else
-                {
-                    sscanf(token, "%d", &GGA.nSatellites);
-                }
                 printf("nSatellites = %d\n", GGA.nSatellites);
-
-                /*find and store hdop*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.hdop = 0;
-                }
-                else
-                {
-                    sscanf(token, "%f", &GGA.hdop);
-                }
                 printf("hdop = %f\n", GGA.hdop);
-
-                /*find and store altitude*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.altitude = 0;
-                }
-                else
-                {
-                    sscanf(token, "%f", &GGA.altitude);
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                printf("altitude = %.3f\n", GGA.altitude);
-                
-                /*find and store elevation*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.elevation = 0;
-                }
-                else
-                {
-                    sscanf(token, "%f", &GGA.elevation);
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                printf("elevation = %.3f\n", GGA.elevation);
-
-                /*find and store dGpsStale*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.dGpsStale = 0xFF;
-                }
-                else
-                {
-                    sscanf(token, "%d", &GGA.dGpsStale);
-                }
+                printf("altitude = %f\n", GGA.altitude);
+                printf("elevation = %f\n", GGA.elevation);
                 printf("dGpsStale = %d\n", GGA.dGpsStale);
-
-                /*find and store dGpsID*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GGA.dGpsID = 0xFF;
-                }
-                else
-                {
-                    sscanf(token, "%d", &GGA.dGpsID);
-                }
                 printf("dGpsID = %d\n", GGA.dGpsID);
-                break;
-            }
-            case NMEA_MESSAGE_GLL:
-            {
-                printf("NMEA_MESSAGE_GLL\n");
-                NMEA_GLL_t GLL;
-                char str[256];
-                char* token;
-                char delimiter = ',';
-                /*copy nmeaString to temp buffer*/
-                strcpy(str, nmeaString);
 
-                /*find nmea type*/
-                token = strtok_e(str, delimiter);
-                printf("token = %s\n", token);
-
-                /*store talkerID*/
-                GLL.talkerID = token[2];
-
-                /*equation for GGA latitude/longitude: first 2 digits + last 4/60*/
-                /*find and store latitude*/
-                int temp_int;
-                float temp_frac;
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GLL.latitude = 0;
-                }
-                else
-                {
-                    sscanf(token, "%2d%f", &temp_int, &temp_frac);
-                    printf("temp_int = %d\n", temp_int);
-                    printf("temp_frac = %f\n", temp_frac);
-                    GLL.latitude = temp_int + temp_frac/60;
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(GLL.latitude != 0 && token[0] == 'S')
-                {
-                    GLL.latitude = -1 * GLL.latitude;
-                }
-                printf("latitude = %f\n", GLL.latitude);
-
-                /*find and store longitude*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GLL.longitude = 0;
-                }
-                else
-                {
-                    sscanf(token, "%3d%f", &temp_int, &temp_frac);
-                    printf("temp_int = %d\n", temp_int);
-                    printf("temp_frac = %f\n", temp_frac);
-                    GLL.longitude = temp_int + temp_frac/60;
-                }
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(GLL.longitude != 0 && token[0] == 'W')
-                {
-                    GLL.longitude = -1 * GLL.longitude;
-                }
-                printf("longitude = %f\n", GLL.longitude);
-
-                /*find and store hour minute second*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GLL.fixHour = 0xFF;
-                    GLL.fixMinute = 0xFF;
-                    GLL.fixSecond = 0xFF;
-                }
-                else
-                {
-                    sscanf(token, "%2d%2d%2d", &GLL.fixHour, &GLL.fixMinute, &GLL.fixSecond);
-                }
-                printf("fixHour = %d\n", GLL.fixHour);
-                printf("fixMinute = %d\n", GLL.fixMinute);
-                printf("fixSecond = %d\n", GLL.fixSecond);
-
-                /*find and store fixType*/
-                token = strtok_e(NULL, delimiter);
-                printf("token = %s\n", token);
-                if(token == NULL)
-                {
-                    GLL.fixType = '\0';
-                }
-                else
-                {
-                    GLL.fixType = token[0];
-                }
-                printf("fixType = %c\n", GLL.fixType);
                 break;
             }
             case NMEA_MESSAGE_ERROR:

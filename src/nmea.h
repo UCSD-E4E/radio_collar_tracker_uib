@@ -80,7 +80,7 @@ typedef struct NMEA_Config_
  * Floating point fields not provided should be set to NaN.  Character fields
  * not provided should be set to '\0'.
  *
- * Example: $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
+ * Example: $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,*47
  */
 typedef struct NMEA_GGA_
 {
