@@ -72,221 +72,203 @@ void NMEA_Init(NMEA_Config_t* pConfig)
 char dataID;
 char talkerID;
 
-void setID(char token[], void *ID, void *arg1, void *arg2)
+void setID(char token[], char *ID)
 {
-    *(char *)ID = talkerID;
+    *ID = talkerID;
 }
 
-void fixTimeGGA(char token[], void *hour, void *minute, void *second)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)hour = 0xFF;
-        *(uint8_t *)minute = 0xFF;
-        *(uint8_t *)second = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)hour = atoi(&token[4]);
-        token[4] = '\0';
-        *(uint8_t *)minute = atoi(&token[2]);
-        token[2] = '\0';
-        *(uint8_t *)second = atoi(&token[0]);
-    }
-}
-
-void fixTimeGLL(char token[], void *hour, void *minute, void *second)
+void fixTime(char token[], uint8_t *hour, uint8_t *minute, uint8_t *second)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)hour = 0xFF;
-        *(uint8_t *)minute = 0xFF;
-        *(uint8_t *)second = 0xFF;
+        *hour = 0xFF;
+        *minute = 0xFF;
+        *second = 0xFF;
     }
     else
     {
-        *(uint8_t *)second = atoi(&token[4]);
+        *second = atoi(&token[4]);
         token[4] = '\0';
-        *(uint8_t *)minute = atoi(&token[2]);
+        *minute = atoi(&token[2]);
         token[2] = '\0';
-        *(uint8_t *)hour = atoi(&token[0]);
+        *hour = atoi(&token[0]);
     }
 }
 
-void findLat(char token[], void *lat, void *arg1, void *arg2)
+void findLat(char token[], float *lat)
 {
     int temp_int;
     float temp_frac;
     if(token[0] == '\0')
     {
-        *(float *)lat = 0;
+        *lat = 0;
     }
     else
     {
         temp_frac = atof(&token[2]);
         token[2] = '\0';
         temp_int = atoi(&token[0]);
-        *(float *)lat = temp_int + temp_frac/60;
+        *lat = temp_int + temp_frac/60;
     }
 }
 
-void latDir(char token[], void *lat, void *arg1, void *arg2)
+void latDir(char token[], float *lat)
 {
     if(token[0] == 'S')
     {
-        *(float *)lat = -1 * (*(float *)lat);
+        *lat = -1 * (*lat);
     }
 }
 
-void findLong(char token[], void *longitude, void *arg1, void *arg2)
+void findLong(char token[], float *longitude)
 {
     int temp_int;
     float temp_frac;
     if(token[0] == '\0')
     {
-        *(float *)longitude = 0;
+        *longitude = 0;
     }
     else
     {
         temp_frac = atof(&token[3]);
         token[3] = '\0';
         temp_int = atoi(&token[0]);
-        *(float *)longitude = temp_int + temp_frac/60;
+        *longitude = temp_int + temp_frac/60;
     }
 }
 
-void longDir(char token[], void *longitude, void *arg1, void *arg2)
+void longDir(char token[], float *longitude)
 {
     if(token[0] == 'W')
     {
-        *(float *)longitude = -1 * (*(float *)longitude);
+        *longitude = -1 * (*longitude);
     }
 }
 
-void fixQuality(char token[], void *quality, void *arg1, void *arg2)
+void fixQuality(char token[], uint8_t *quality)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)quality = 0;
+        *quality = 0;
     }
     else
     {
-        *(uint8_t *)quality = atoi(token);
+        *quality = atoi(token);
     }
 }
 
-void nSatellites(char token[], void *satellite, void *arg1, void *arg2)
+void nSatellites(char token[], uint8_t *satellite)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)satellite = 0;
+        *satellite = 0;
     }
     else
     {
-        *(uint8_t *)satellite = atoi(token);
+        *satellite = atoi(token);
     }
 }
 
-void hdop(char token[], void *hdop, void *arg1, void *arg2)
+void hdop(char token[], float *hdop)
 {
     if(token[0] == '\0')
     {
-        *(float *)hdop = 0;
+        *hdop = 0;
     }
     else
     {
-        *(float *)hdop = atof(token);
+        *hdop = atof(token);
     }
 }
 
-void altitude(char token[], void *alt, void *arg1, void *arg2)
+void altitude(char token[], float *alt)
 {
     if(token[0] == '\0')
     {
-        *(float *)alt = 0;
+        *alt = 0;
     }
     else
     {
-        *(float *)alt = atof(token);
+        *alt = atof(token);
     }
 }
 
-void elevation(char token[], void *elevation, void *arg1, void *arg2)
+void elevation(char token[], float *elevation)
 {
     if(token[0] == '\0')
     {
-        *(float *)elevation = 0;
+        *elevation = 0;
     }
     else
     {
-        *(float *)elevation = atof(token);
+        *elevation = atof(token);
     }
 }
 
-void dGpsStale(char token[], void *stale, void *arg1, void *arg2)
+void dGpsStale(char token[], uint8_t *stale)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)stale = 0xFF;
+        *stale = 0xFF;
     }
     else
     {
-        *(uint8_t *)stale = atoi(token);
+        *stale = atoi(token);
     }
 }
 
-void dGpsID(char token[], void *ID, void *arg1, void *arg2)
+void dGpsID(char token[], uint8_t *ID)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)ID = 0xFF;
+        *ID = 0xFF;
     }
     else
     {
-        *(uint8_t *)ID = atoi(token);
+        *ID = atoi(token);
     }
 }
 
-void fixType(char token[], void *type, void *arg1, void *arg2)
+void fixType(char token[], char *type)
 {
     if(token[0] == '\0')
     {
-        *(char *)type = 0xFF;
+        *type = 0xFF;
     }
     else
     {
-        *(char *)type = token[0];
+        *type = token[0];
     }
 }
 
 NMEA_Function_Ptr_t GGA_table[] =
 {
-    {setID, &NMEA_Data.GGA.talkerID, 0, 0, FIELD_GGA_TIME},
-    {fixTimeGGA, &NMEA_Data.GGA.fixHour, &NMEA_Data.GGA.fixMinute, &NMEA_Data.GGA.fixSecond, FIELD_GGA_LAT},
-    {findLat, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LAT_DIR},
-    {latDir, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LONGITUDE},
-    {findLong, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_LONGITUDE_DIR},
-    {longDir, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_QUALITY},
-    {fixQuality, &NMEA_Data.GGA.fixQuality, 0, 0, FIELD_GGA_SATELLITES},
-    {nSatellites, &NMEA_Data.GGA.nSatellites, 0, 0, FIELD_GGA_HDOP},
-    {hdop, &NMEA_Data.GGA.hdop, 0, 0, FIELD_GGA_ALTITUDE},
-    {altitude, &NMEA_Data.GGA.altitude, 0, 0, FIELD_GGA_ALTITUDE_UNIT},
-    {NULL, 0, 0, 0, FIELD_GGA_ELEVATION},
-    {elevation, &NMEA_Data.GGA.elevation, 0, 0, FIELD_GGA_ELEVATION_UNIT},
-    {NULL, 0, 0, 0, FIELD_GGA_DGPSSTALE},
-    {dGpsStale, &NMEA_Data.GGA.dGpsStale, 0, 0, FIELD_GGA_DGPSID},
-    {dGpsID, &NMEA_Data.GGA.dGpsID, 0, 0, FIELD_GGA_END}
+    {(base_func)setID, CHAR_ONE, &NMEA_Data.GGA.talkerID, 0, 0, FIELD_GGA_TIME},
+    {(base_func)fixTime, UINT8_THREE, &NMEA_Data.GGA.fixHour, &NMEA_Data.GGA.fixMinute, &NMEA_Data.GGA.fixSecond, FIELD_GGA_LAT},
+    {(base_func)findLat, FLOAT_ONE, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LAT_DIR},
+    {(base_func)latDir, FLOAT_ONE, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LONGITUDE},
+    {(base_func)findLong, FLOAT_ONE, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_LONGITUDE_DIR},
+    {(base_func)longDir, FLOAT_ONE, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_QUALITY},
+    {(base_func)fixQuality, UINT8_ONE, &NMEA_Data.GGA.fixQuality, 0, 0, FIELD_GGA_SATELLITES},
+    {(base_func)nSatellites, UINT8_ONE, &NMEA_Data.GGA.nSatellites, 0, 0, FIELD_GGA_HDOP},
+    {(base_func)hdop, FLOAT_ONE, &NMEA_Data.GGA.hdop, 0, 0, FIELD_GGA_ALTITUDE},
+    {(base_func)altitude, FLOAT_ONE, &NMEA_Data.GGA.altitude, 0, 0, FIELD_GGA_ALTITUDE_UNIT},
+    {(base_func)NULL, 0, 0, 0, 0, FIELD_GGA_ELEVATION},
+    {(base_func)elevation, FLOAT_ONE, &NMEA_Data.GGA.elevation, 0, 0, FIELD_GGA_ELEVATION_UNIT},
+    {(base_func)NULL, 0, 0, 0, 0, FIELD_GGA_DGPSSTALE},
+    {(base_func)dGpsStale, UINT8_ONE, &NMEA_Data.GGA.dGpsStale, 0, 0, FIELD_GGA_DGPSID},
+    {(base_func)dGpsID, UINT8_ONE, &NMEA_Data.GGA.dGpsID, 0, 0, FIELD_GGA_END}
 };
 
 NMEA_Function_Ptr_t GLL_table[] =
 {
-    {setID, &NMEA_Data.GLL.talkerID, 0, 0, FIELD_GLL_LAT},
-    {findLat, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LAT_DIR},
-    {latDir, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LONGITUDE},
-    {findLong, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_LONGITUDE_DIR},
-    {longDir, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_TIME},
-    {fixTimeGLL, &NMEA_Data.GLL.fixHour, &NMEA_Data.GLL.fixMinute, &NMEA_Data.GLL.fixSecond, FIELD_GLL_FIXTYPE},
-    {fixType, &NMEA_Data.GLL.fixType, 0, 0, FIELD_GLL_END}
+    {(base_func)setID, CHAR_ONE, &NMEA_Data.GLL.talkerID, 0, 0, FIELD_GLL_LAT},
+    {(base_func)findLat, FLOAT_ONE, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LAT_DIR},
+    {(base_func)latDir, FLOAT_ONE, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LONGITUDE},
+    {(base_func)findLong, FLOAT_ONE, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_LONGITUDE_DIR},
+    {(base_func)longDir, FLOAT_ONE, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_TIME},
+    {(base_func)fixTime, UINT8_THREE, &NMEA_Data.GLL.fixHour, &NMEA_Data.GLL.fixMinute, &NMEA_Data.GLL.fixSecond, FIELD_GLL_FIXTYPE},
+    {(base_func)fixType, CHAR_ONE, &NMEA_Data.GLL.fixType, 0, 0, FIELD_GLL_END}
 };
 
 NMEA_Message_e NMEA_Decode(char c)
@@ -409,9 +391,24 @@ NMEA_Message_e NMEA_Decode(char c)
                 switch(message)
                 {
                     case NMEA_MESSAGE_GGA:
-                        if(GGA_table[next_field].field_function_ptr != NULL)
+                        if(GGA_table[next_field].field_func_ptr != NULL)
                         {
-                            GGA_table[next_field].field_function_ptr(str, GGA_table[next_field].arg0,  GGA_table[next_field].arg1, GGA_table[next_field].arg2);
+                            if(GGA_table[next_field].arg_type == CHAR_ONE)
+                            {
+                                ((char_one_func)(GGA_table[next_field].field_func_ptr))(str, (char *)GGA_table[next_field].arg0);
+                            }
+                            else if(GGA_table[next_field].arg_type == UINT8_ONE)
+                            {
+                                ((uint8_one_func)(GGA_table[next_field].field_func_ptr))(str, (uint8_t *)GGA_table[next_field].arg0);
+                            }
+                            else if(GGA_table[next_field].arg_type == UINT8_THREE)
+                            {
+                                ((uint8_three_func)(GGA_table[next_field].field_func_ptr))(str, (uint8_t *)GGA_table[next_field].arg0, (uint8_t *) GGA_table[next_field].arg1, (uint8_t *) GGA_table[next_field].arg2);
+                            }
+                            else if(GGA_table[next_field].arg_type == FLOAT_ONE)
+                            {
+                                ((float_one_func)(GGA_table[next_field].field_func_ptr))(str, (float *)GGA_table[next_field].arg0);
+                            }                           
                         }
                         next_field = GGA_table[next_field].next_field;
                         if(next_field == FIELD_GGA_END)
@@ -420,10 +417,25 @@ NMEA_Message_e NMEA_Decode(char c)
                             next_field = FIELD_TALKER_ID;
                         }
                         break;
-                    case NMEA_MESSAGE_GLL:
-                        if(GLL_table[next_field].field_function_ptr != NULL)
+                    case NMEA_MESSAGE_GLL:                   
+                        if(GLL_table[next_field].field_func_ptr != NULL)
                         {
-                            GLL_table[next_field].field_function_ptr(str, GLL_table[next_field].arg0,  GLL_table[next_field].arg1, GLL_table[next_field].arg2);
+                            if(GLL_table[next_field].arg_type == CHAR_ONE)
+                            {
+                                ((char_one_func)(GLL_table[next_field].field_func_ptr))(str, (char *)GLL_table[next_field].arg0);
+                            }
+                            else if(GLL_table[next_field].arg_type == UINT8_ONE)
+                            {
+                                ((uint8_one_func)(GLL_table[next_field].field_func_ptr))(str, (uint8_t *)GLL_table[next_field].arg0);
+                            }
+                            else if(GLL_table[next_field].arg_type == UINT8_THREE)
+                            {
+                                ((uint8_three_func)(GLL_table[next_field].field_func_ptr))(str, (uint8_t *)GLL_table[next_field].arg0, (uint8_t *) GLL_table[next_field].arg1, (uint8_t *) GLL_table[next_field].arg2);
+                            }
+                            else if(GLL_table[next_field].arg_type == FLOAT_ONE)
+                            {
+                                ((float_one_func)(GLL_table[next_field].field_func_ptr))(str, (float *)GLL_table[next_field].arg0);
+                            }                           
                         }
                         next_field = GLL_table[next_field].next_field;
                         if(next_field == FIELD_GLL_END)

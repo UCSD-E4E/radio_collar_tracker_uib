@@ -93,6 +93,14 @@ typedef enum GLL_field_type_
     FIELD_GLL_FIXTYPE,
     FIELD_GLL_END
 } GLL_field_type_e;
+
+typedef enum Argument_type_
+{
+    CHAR_ONE,
+    UINT8_ONE,
+    UINT8_THREE,
+    FLOAT_ONE
+} Argument_type_e;
 /**
  * NMEA Configuration Structure
  */
@@ -152,12 +160,20 @@ typedef struct NMEA_GLL_
     char fixType;           //!< Fix Mode.  For the above example, A
 }NMEA_GLL_t;
 
+
+typedef void (*base_func)(void);
+typedef void (*char_one_func)(char str[], char *);
+typedef void (*uint8_one_func)(char str[], uint8_t *);
+typedef void (*float_one_func)(char str[], float *);
+typedef void (*uint8_three_func)(char str[], uint8_t *, uint8_t *, uint8_t *);
+
 typedef struct NMEA_Function_Ptr_
 {
-    void (*field_function_ptr)(char token[], void *arg0, void *arg1, void *arg2);
+    void (*field_func_ptr)(void);
+    Argument_type_e arg_type;
     void *arg0;
     void *arg1;
-    void *arg2;    
+    void *arg2;
     GGA_field_type_e next_field;
 } NMEA_Function_Ptr_t;
 
