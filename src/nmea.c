@@ -35,7 +35,8 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-
+#define STRLENGTH 256
+#define BASE 16
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -43,7 +44,7 @@
 /******************************************************************************
  * Global Data
  ******************************************************************************/
-
+NMEA_Data_u NMEA_Data;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
@@ -70,184 +71,239 @@ void NMEA_Init(NMEA_Config_t* pConfig)
  */
 char dataID;
 char talkerID;
-NMEA_GGA_t GGA;
 
-void fixTime(char token[])
+void setID(char token[], void *ID, void *arg1, void *arg2)
+{
+    *(char *)ID = talkerID;
+}
+
+void fixTimeGGA(char token[], void *hour, void *minute, void *second)
 {
     if(token[0] == '\0')
     {
-        GGA.fixHour = 0xFF;
-        GGA.fixMinute = 0xFF;
-        GGA.fixSecond = 0xFF;
+        *(uint8_t *)hour = 0xFF;
+        *(uint8_t *)minute = 0xFF;
+        *(uint8_t *)second = 0xFF;
     }
     else
     {
-        GGA.fixSecond = atoi(&token[4]);
+        *(uint8_t *)hour = atoi(&token[4]);
         token[4] = '\0';
-        GGA.fixMinute = atoi(&token[2]);
+        *(uint8_t *)minute = atoi(&token[2]);
         token[2] = '\0';
-        GGA.fixHour = atoi(&token[0]);
+        *(uint8_t *)second = atoi(&token[0]);
     }
 }
 
-void findLat(char token[])
+void fixTimeGLL(char token[], void *hour, void *minute, void *second)
+{
+    if(token[0] == '\0')
+    {
+        *(uint8_t *)hour = 0xFF;
+        *(uint8_t *)minute = 0xFF;
+        *(uint8_t *)second = 0xFF;
+    }
+    else
+    {
+        *(uint8_t *)second = atoi(&token[4]);
+        token[4] = '\0';
+        *(uint8_t *)minute = atoi(&token[2]);
+        token[2] = '\0';
+        *(uint8_t *)hour = atoi(&token[0]);
+    }
+}
+
+void findLat(char token[], void *lat, void *arg1, void *arg2)
 {
     int temp_int;
     float temp_frac;
     if(token[0] == '\0')
     {
-        GGA.latitude = 0;
+        *(float *)lat = 0;
     }
     else
     {
         temp_frac = atof(&token[2]);
         token[2] = '\0';
         temp_int = atoi(&token[0]);
-        GGA.latitude = temp_int + temp_frac/60;
+        *(float *)lat = temp_int + temp_frac/60;
     }
 }
 
-void findLong(char token[])
+void latDir(char token[], void *lat, void *arg1, void *arg2)
+{
+    if(token[0] == 'S')
+    {
+        *(float *)lat = -1 * (*(float *)lat);
+    }
+}
+
+void findLong(char token[], void *longitude, void *arg1, void *arg2)
 {
     int temp_int;
     float temp_frac;
     if(token[0] == '\0')
     {
-        GGA.longitude = 0;
+        *(float *)longitude = 0;
     }
     else
     {
         temp_frac = atof(&token[3]);
         token[3] = '\0';
         temp_int = atoi(&token[0]);
-        GGA.longitude = temp_int + temp_frac/60;
-        printf("%f\n", temp_frac);
-        printf("%d", temp_int);
+        *(float *)longitude = temp_int + temp_frac/60;
     }
 }
 
-void fixQuality(char token[])
+void longDir(char token[], void *longitude, void *arg1, void *arg2)
+{
+    if(token[0] == 'W')
+    {
+        *(float *)longitude = -1 * (*(float *)longitude);
+    }
+}
+
+void fixQuality(char token[], void *quality, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.fixQuality = 0;
+        *(uint8_t *)quality = 0;
     }
     else
     {
-        GGA.fixQuality = atoi(token);
+        *(uint8_t *)quality = atoi(token);
     }
 }
 
-void nSatellites(char token[])
+void nSatellites(char token[], void *satellite, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.nSatellites = 0;
+        *(uint8_t *)satellite = 0;
     }
     else
     {
-        GGA.nSatellites = atoi(token);
+        *(uint8_t *)satellite = atoi(token);
     }
 }
 
-void hdop(char token[])
+void hdop(char token[], void *hdop, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.hdop = 0;
+        *(float *)hdop = 0;
     }
     else
     {
-        GGA.hdop = atof(token);
+        *(float *)hdop = atof(token);
     }
 }
 
-void altitude(char token[])
+void altitude(char token[], void *alt, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.altitude = 0;
+        *(float *)alt = 0;
     }
     else
     {
-        GGA.altitude = atof(token);
+        *(float *)alt = atof(token);
     }
 }
 
-void elevation(char token[])
+void elevation(char token[], void *elevation, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.elevation = 0;
+        *(float *)elevation = 0;
     }
     else
     {
-        GGA.elevation = atof(token);
+        *(float *)elevation = atof(token);
     }
 }
 
-void dGpsStale(char token[])
+void dGpsStale(char token[], void *stale, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.dGpsStale = 0xFF;
+        *(uint8_t *)stale = 0xFF;
     }
     else
     {
-        GGA.dGpsStale = atoi(token);
+        *(uint8_t *)stale = atoi(token);
     }
 }
 
-void dGpsID(char token[])
+void dGpsID(char token[], void *ID, void *arg1, void *arg2)
 {
     if(token[0] == '\0')
     {
-        GGA.dGpsID = 0xFF;
+        *(uint8_t *)ID = 0xFF;
     }
     else
     {
-        GGA.dGpsID = atoi(token);
+        *(uint8_t *)ID = atoi(token);
     }
 }
 
-void dtoh(int quotient, char *hexadecimal)
+void fixType(char token[], void *type, void *arg1, void *arg2)
 {
-    int remainder;
-    int j = 0;
-    char temp;
-
-    while (quotient != 0)
+    if(token[0] == '\0')
     {
-        remainder = quotient % 16;
-        if (remainder < 10)
-        {
-            hexadecimal[j++] = 48 + remainder;
-        }
-        else
-        {
-            hexadecimal[j++] = 55 + remainder;
-        }
-        quotient = quotient / 16;
+        *(char *)type = 0xFF;
     }
-    temp = hexadecimal[0];
-    hexadecimal[0] = hexadecimal[1];
-    hexadecimal[1] = temp;
+    else
+    {
+        *(char *)type = token[0];
+    }
 }
+
+NMEA_Function_Ptr_t GGA_table[] =
+{
+    {setID, &NMEA_Data.GGA.talkerID, 0, 0, FIELD_GGA_TIME},
+    {fixTimeGGA, &NMEA_Data.GGA.fixHour, &NMEA_Data.GGA.fixMinute, &NMEA_Data.GGA.fixSecond, FIELD_GGA_LAT},
+    {findLat, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LAT_DIR},
+    {latDir, &NMEA_Data.GGA.latitude, 0, 0, FIELD_GGA_LONGITUDE},
+    {findLong, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_LONGITUDE_DIR},
+    {longDir, &NMEA_Data.GGA.longitude, 0, 0, FIELD_GGA_QUALITY},
+    {fixQuality, &NMEA_Data.GGA.fixQuality, 0, 0, FIELD_GGA_SATELLITES},
+    {nSatellites, &NMEA_Data.GGA.nSatellites, 0, 0, FIELD_GGA_HDOP},
+    {hdop, &NMEA_Data.GGA.hdop, 0, 0, FIELD_GGA_ALTITUDE},
+    {altitude, &NMEA_Data.GGA.altitude, 0, 0, FIELD_GGA_ALTITUDE_UNIT},
+    {NULL, 0, 0, 0, FIELD_GGA_ELEVATION},
+    {elevation, &NMEA_Data.GGA.elevation, 0, 0, FIELD_GGA_ELEVATION_UNIT},
+    {NULL, 0, 0, 0, FIELD_GGA_DGPSSTALE},
+    {dGpsStale, &NMEA_Data.GGA.dGpsStale, 0, 0, FIELD_GGA_DGPSID},
+    {dGpsID, &NMEA_Data.GGA.dGpsID, 0, 0, FIELD_GGA_END}
+};
+
+NMEA_Function_Ptr_t GLL_table[] =
+{
+    {setID, &NMEA_Data.GLL.talkerID, 0, 0, FIELD_GLL_LAT},
+    {findLat, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LAT_DIR},
+    {latDir, &NMEA_Data.GLL.latitude, 0, 0, FIELD_GLL_LONGITUDE},
+    {findLong, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_LONGITUDE_DIR},
+    {longDir, &NMEA_Data.GLL.longitude, 0, 0, FIELD_GLL_TIME},
+    {fixTimeGLL, &NMEA_Data.GLL.fixHour, &NMEA_Data.GLL.fixMinute, &NMEA_Data.GLL.fixSecond, FIELD_GLL_FIXTYPE},
+    {fixType, &NMEA_Data.GLL.fixType, 0, 0, FIELD_GLL_END}
+};
 
 NMEA_Message_e NMEA_Decode(char c)
 {
     static state_e decodeState = START;
     static NMEA_Message_e message = NMEA_MESSAGE_NONE;
     static char checksum = 0;
+    long int checksum_hex;
     static int counter = 0;
     static int char_count = 0;
     static char sum[3] = {0, 0, 0};
     static char *ptr1;
     static char *ptr2;
     static char next_expected_char = 0;
-    static int token_num = 0;
     static int i = 0;
-    static char str[256];
+    static char str[STRLENGTH];
+    static GGA_field_type_e next_field = FIELD_TALKER_ID;
 
     switch(decodeState)
     {
@@ -342,199 +398,41 @@ NMEA_Message_e NMEA_Decode(char c)
             checksum ^= c;
             break;
         case FIELDS:
-            switch(message)
+            if(c != ',' && c != '*' && i < STRLENGTH)
             {
-                case NMEA_MESSAGE_GGA:
-                    switch(token_num)
-                    {
-                        case 0:
-                            GGA.talkerID = talkerID;
-                            token_num = 1;
-                            break;
-                        case 1:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                fixTime(str);
-                                token_num = 2;
-                            }
-                            break;
-                        case 2:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else 
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                findLat(str);
-                                token_num = 3;
-                            }
-                            break;
-                        case 3:
-                            if(c != ',')
-                            {
-                                if(c == 'S')
-                                {
-                                    GGA.latitude = -1 * GGA.latitude;
-                                }
-                            }
-                            else
-                            {
-                                token_num = 4;
-                            }
-                            break;
-                        case 4:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                findLong(str);
-                                token_num = 5;
-                            }
-                            break;
-                        case 5:
-                            if(c != ',')
-                            {
-                                if(c == 'W')
-                                {
-                                    GGA.longitude = -1 * GGA.longitude;
-                                }
-                            }
-                            else
-                            {
-                                token_num = 6;
-                            }
-                            break;
-                        case 6:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                fixQuality(str);
-                                token_num = 7;
-                            }
-                            break;
-                        case 7:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                nSatellites(str);
-                                token_num = 8;
-                            }
-                            break;
-                        case 8:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                hdop(str);
-                                token_num = 9;
-                            }
-                            break;
-                        case 9:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                altitude(str);
-                                token_num = 10;
-                            }
-                            break;
-                        case 10:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                token_num = 11;
-                            }
-                            break;
-                        case 11:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                elevation(str);
-                                token_num = 12;
-                            }
-                            break;
-                        case 12:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                token_num = 13;
-                            }
-                            break;
-                        case 13:
-                            if(c != ',')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                dGpsStale(str);
-                                token_num = 14;
-                            }
-                            break;
-                        case 14:
-                            if(c != ',' && c != '*')
-                            {
-                                str[i++] = c;
-                            }
-                            else
-                            {
-                                str[i] = '\0';
-                                i = 0;
-                                dGpsID(str);
-                                token_num = 0;
-                                decodeState = CHECKSUM;
-                            }
-                            break;
-                    }
-                case NMEA_MESSAGE_GLL:
-                    break;
+                str[i++] = c;
+            }
+            else
+            {
+                str[i] = '\0';
+                i = 0;
+                switch(message)
+                {
+                    case NMEA_MESSAGE_GGA:
+                        if(GGA_table[next_field].field_function_ptr != NULL)
+                        {
+                            GGA_table[next_field].field_function_ptr(str, GGA_table[next_field].arg0,  GGA_table[next_field].arg1, GGA_table[next_field].arg2);
+                        }
+                        next_field = GGA_table[next_field].next_field;
+                        if(next_field == FIELD_GGA_END)
+                        {
+                            decodeState = CHECKSUM;
+                            next_field = FIELD_TALKER_ID;
+                        }
+                        break;
+                    case NMEA_MESSAGE_GLL:
+                        if(GLL_table[next_field].field_function_ptr != NULL)
+                        {
+                            GLL_table[next_field].field_function_ptr(str, GLL_table[next_field].arg0,  GLL_table[next_field].arg1, GLL_table[next_field].arg2);
+                        }
+                        next_field = GLL_table[next_field].next_field;
+                        if(next_field == FIELD_GLL_END)
+                        {
+                            decodeState = CHECKSUM;
+                            next_field = FIELD_TALKER_ID;
+                        }
+                        break;
+                }
             }
             if(c != '*')
             {
@@ -548,11 +446,9 @@ NMEA_Message_e NMEA_Decode(char c)
             }
             if(char_count == 2)
             {
-                char hexadecimal[3];
-                memset(hexadecimal, 0, sizeof(hexadecimal));
                 sum[char_count] = '\0';
-                dtoh(checksum, hexadecimal);
-                if(!strcmp(hexadecimal, sum))
+                checksum_hex = strtol(sum, NULL, BASE);
+                if(checksum == checksum_hex)
                 {
                     decodeState = START;
                     return message;

@@ -63,6 +63,36 @@ typedef enum state_
     CHECKSUM
 } state_e;
 
+typedef enum GGA_field_type_
+{
+    FIELD_TALKER_ID,
+    FIELD_GGA_TIME,
+    FIELD_GGA_LAT,
+    FIELD_GGA_LAT_DIR,
+    FIELD_GGA_LONGITUDE,
+    FIELD_GGA_LONGITUDE_DIR,
+    FIELD_GGA_QUALITY,
+    FIELD_GGA_SATELLITES,
+    FIELD_GGA_HDOP,
+    FIELD_GGA_ALTITUDE,
+    FIELD_GGA_ALTITUDE_UNIT,
+    FIELD_GGA_ELEVATION,
+    FIELD_GGA_ELEVATION_UNIT,
+    FIELD_GGA_DGPSSTALE,
+    FIELD_GGA_DGPSID,
+    FIELD_GGA_END
+} GGA_field_type_e;
+
+typedef enum GLL_field_type_
+{
+    FIELD_GLL_LAT = 1,
+    FIELD_GLL_LAT_DIR,
+    FIELD_GLL_LONGITUDE,
+    FIELD_GLL_LONGITUDE_DIR,
+    FIELD_GLL_TIME,
+    FIELD_GLL_FIXTYPE,
+    FIELD_GLL_END
+} GLL_field_type_e;
 /**
  * NMEA Configuration Structure
  */
@@ -80,7 +110,7 @@ typedef struct NMEA_Config_
  * Floating point fields not provided should be set to NaN.  Character fields
  * not provided should be set to '\0'.
  *
- * Example: $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,*47
+ * Example: $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
  */
 typedef struct NMEA_GGA_
 {
@@ -121,6 +151,15 @@ typedef struct NMEA_GLL_
     uint8_t fixSecond;      //!< Fix Second.  For the above example, 44
     char fixType;           //!< Fix Mode.  For the above example, A
 }NMEA_GLL_t;
+
+typedef struct NMEA_Function_Ptr_
+{
+    void (*field_function_ptr)(char token[], void *arg0, void *arg1, void *arg2);
+    void *arg0;
+    void *arg1;
+    void *arg2;    
+    GGA_field_type_e next_field;
+} NMEA_Function_Ptr_t;
 
 typedef union NMEA_Data_{
     NMEA_GGA_t GGA;
