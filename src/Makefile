@@ -1,5 +1,5 @@
 nmea: main.c nmea.c
-	gcc main.c nmea.c -o nmea
+	gcc -Wall main.c nmea.c -o nmea
 
 clean:
 	rm *.o nmea

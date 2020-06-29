@@ -94,13 +94,6 @@ typedef enum GLL_field_type_
     FIELD_GLL_END
 } GLL_field_type_e;
 
-typedef enum Argument_type_
-{
-    CHAR_ONE,
-    UINT8_ONE,
-    UINT8_THREE,
-    FLOAT_ONE
-} Argument_type_e;
 /**
  * NMEA Configuration Structure
  */
@@ -123,9 +116,7 @@ typedef struct NMEA_Config_
 typedef struct NMEA_GGA_
 {
     char talkerID;          //!< Talker ID.  For the above example, 'P'
-    uint8_t fixHour;        //!< Fix Hour.  For the above example, 12
-    uint8_t fixMinute;      //!< Fix Minute.  For the above example, 35
-    uint8_t fixSecond;      //!< Fix Second.  For the above example, 19
+    uint8_t fixTime[3];      //!< Fix Second.  For the above example, 19
     float latitude;         //!< Latitude.  For the above example, 48.127222
     float longitude;        //!< Longitude.  For the above example, 11.516667
     uint8_t fixQuality;     //!< Fix Quality.  For the above example, 1
@@ -154,27 +145,15 @@ typedef struct NMEA_GLL_
     char talkerID;          //!< Talker ID.  For the above example, 'P'
     float latitude;         //!< Latitude.  For the above example, 49.279444
     float longitude;        //!< Longitude.  For the above example, 123.186667
-    uint8_t fixHour;        //!< Fix Hour.  For the above example, 22
-    uint8_t fixMinute;      //!< Fix Minute.  For the above example, 54
-    uint8_t fixSecond;      //!< Fix Second.  For the above example, 44
+    uint8_t fixTime[3];      //!< Fix Second.  For the above example, 44
     char fixType;           //!< Fix Mode.  For the above example, A
 }NMEA_GLL_t;
 
-
-typedef void (*base_func)(void);
-typedef void (*char_one_func)(char str[], char *);
-typedef void (*uint8_one_func)(char str[], uint8_t *);
-typedef void (*float_one_func)(char str[], float *);
-typedef void (*uint8_three_func)(char str[], uint8_t *, uint8_t *, uint8_t *);
-
 typedef struct NMEA_Function_Ptr_
 {
-    void (*field_func_ptr)(void);
-    Argument_type_e arg_type;
+    void (*field_func_ptr)(char *, void *);
     void *arg0;
-    void *arg1;
-    void *arg2;
-    GGA_field_type_e next_field;
+    int next_field;
 } NMEA_Function_Ptr_t;
 
 typedef union NMEA_Data_{
