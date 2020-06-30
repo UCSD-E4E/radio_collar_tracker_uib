@@ -20,9 +20,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * DATE      WHO DESCRIPTION
- * ----------------------------------------------------------------------------
- * 06/12/20  NH  Initial commit
+ *  DATE      WHO DESCRIPTION
+ *  ----------------------------------------------------------------------------
+ *  06/12/20  NH  Initial commit
+ */
+ /* DATE      WHO DESCRIPTION
+ *  ----------------------------------------------------------------------------
+ *  06/29/20  EL  Added Documentation
  */
 /******************************************************************************
  * Includes
@@ -48,36 +52,98 @@ NMEA_Data_u NMEA_Data;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-
+char dataID;
+char talkerID;
+static const NMEA_Function_Ptr_t GGA_table[];
+static const NMEA_Function_Ptr_t GLL_table[];
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
-
+static void setID(char token[], void *ID);
+static void fixTime(char token[], void *time);
+static void findLat(char token[], void *lat);
+static void latDir(char token[], void *lat);
+static void findLong(char token[], void *longitude);
+static void longDir(char token[], void *longitude);
+static void fixQuality(char token[], void *quality);
+static void nSatellites(char token[], void *satellite);
+static void hdop(char token[], void *hdop);
+static void altitude(char token[], void *alt);
+static void elevation(char token[], void *elevation);
+static void dGpsStale(char token[], void *stale);
+static void dGpsID(char token[], void *ID);
+static void fixType(char token[], void *type);
 /******************************************************************************
  * Function Definitions
  ******************************************************************************/
 /**
  * Initialization of variable state
  */
+
+/**
+ * GGA_table[] is a table in the format {function, function input, next field}
+ * including all the functions necessary to parse a GGA string.
+ */
+static const NMEA_Function_Ptr_t GGA_table[] =
+{
+    {setID, &NMEA_Data.GGA.talkerID, FIELD_GGA_TIME},
+    {fixTime, &NMEA_Data.GGA.fixTime, FIELD_GGA_LAT},
+    {findLat, &NMEA_Data.GGA.latitude, FIELD_GGA_LAT_DIR},
+    {latDir, &NMEA_Data.GGA.latitude, FIELD_GGA_LONGITUDE},
+    {findLong, &NMEA_Data.GGA.longitude, FIELD_GGA_LONGITUDE_DIR},
+    {longDir, &NMEA_Data.GGA.longitude, FIELD_GGA_QUALITY},
+    {fixQuality, &NMEA_Data.GGA.fixQuality, FIELD_GGA_SATELLITES},
+    {nSatellites, &NMEA_Data.GGA.nSatellites, FIELD_GGA_HDOP},
+    {hdop, &NMEA_Data.GGA.hdop, FIELD_GGA_ALTITUDE},
+    {altitude, &NMEA_Data.GGA.altitude, FIELD_GGA_ALTITUDE_UNIT},
+    {NULL, 0, FIELD_GGA_ELEVATION},
+    {elevation, &NMEA_Data.GGA.elevation, FIELD_GGA_ELEVATION_UNIT},
+    {NULL, 0, FIELD_GGA_DGPSSTALE},
+    {dGpsStale, &NMEA_Data.GGA.dGpsStale, FIELD_GGA_DGPSID},
+    {dGpsID, &NMEA_Data.GGA.dGpsID, FIELD_GGA_END}
+};
+
+/**
+ * GLL_table[] is a table in the format {function, function input, next field}
+ * including all the functions necessary to parse a GLL string.
+ */
+static const NMEA_Function_Ptr_t GLL_table[] =
+{
+    {setID, &NMEA_Data.GLL.talkerID, FIELD_GLL_LAT},
+    {findLat, &NMEA_Data.GLL.latitude, FIELD_GLL_LAT_DIR},
+    {latDir, &NMEA_Data.GLL.latitude, FIELD_GLL_LONGITUDE},
+    {findLong, &NMEA_Data.GLL.longitude, FIELD_GLL_LONGITUDE_DIR},
+    {longDir, &NMEA_Data.GLL.longitude, FIELD_GLL_TIME},
+    {fixTime, &NMEA_Data.GLL.fixTime, FIELD_GLL_FIXTYPE},
+    {fixType, &NMEA_Data.GLL.fixType, FIELD_GLL_END}
+};
+
 void NMEA_Init(NMEA_Config_t* pConfig)
 {
 
 }
 
 /**
- * Parses one character from an NMEA stream.
- * @param  c Character to parse
- * @return   NMEA_Message_e denoting message detected
+ * Sets the ID.
+ * 
+ * setID takes the talkerID from the TALKER_ID switch state in NMEA_Decode
+ * @param      token  Does nothing (only included for identical inputs of functions)
+ * @param      ID     Character to set as talkerID
  */
-char dataID;
-char talkerID;
-
-void setID(char token[], void *ID)
+static void setID(char token[], void *ID)
 {
     *(char *)ID = talkerID;
 }
 
-void fixTime(char token[], void *time) // uint8_t fixTime[3]
+/**
+ * Sets the Time
+ * 
+ * fixTime takes the token with the three time values: hour, minute, second
+ * and sets an array to hour, minute, and second respectively.
+ * @param      token  The token containing the time values that will be parsed
+ * @param      time   The uint8 array pointer
+ */
+static void fixTime(char token[], void *time)
 {
     uint8_t *time_arr = time;
 
@@ -97,7 +163,16 @@ void fixTime(char token[], void *time) // uint8_t fixTime[3]
     }
 }
 
-void findLat(char token[], void *lat)
+/**
+ * Calculates Latitude and parses it
+ * 
+ * findLat takes the token with the latitude in degrees, minute form and
+ * calculates the latitude solely in degrees then sets the value to the
+ * Latitude variable for the message type.
+ * @param      token  The token with the latitude which will be parsed
+ * @param      lat    The latitude variable to be set
+ */
+static void findLat(char token[], void *lat)
 {
     int temp_int;
     float temp_frac;
@@ -114,7 +189,14 @@ void findLat(char token[], void *lat)
     }
 }
 
-void latDir(char token[], void *lat)
+/**
+ * Puts a sign on the latitude
+ *
+ * latDir changes the latitude to be negative iff the token received is S
+ * @param      token  The token with the direction of latitude (N or S)
+ * @param      lat    The latitude variable to be edited
+ */
+static void latDir(char token[], void *lat)
 {
     if(token[0] == 'S')
     {
@@ -122,7 +204,16 @@ void latDir(char token[], void *lat)
     }
 }
 
-void findLong(char token[], void *longitude)
+/**
+ * Calculates Longitude and parses it
+ * 
+ * findLong takes the token with the longitude in degrees, minute form and
+ * calculates the longitude solely in degrees then sets the value to the
+ * Longitude variable for the message type.
+ * @param      token        The token with the longitude which will be parsed
+ * @param      longitude    The longitude variable to be set
+ */
+static void findLong(char token[], void *longitude)
 {
     int temp_int;
     float temp_frac;
@@ -139,7 +230,14 @@ void findLong(char token[], void *longitude)
     }
 }
 
-void longDir(char token[], void *longitude)
+/**
+ * Puts a sign on the longitude
+ *
+ * longDir changes the longitude to be negative iff the token received is S
+ * @param      token        The token with the direction of longitude (N or S)
+ * @param      longitude    The longitude variable to be edited
+ */
+static void longDir(char token[], void *longitude)
 {
     if(token[0] == 'W')
     {
@@ -147,7 +245,14 @@ void longDir(char token[], void *longitude)
     }
 }
 
-void fixQuality(char token[], void *quality)
+/**
+ * Parses the quality
+ *
+ * fixQuality takes the quality from the token and sets it as a uint8 value in the respective message type
+ * @param      token    The token which contains the quality and will be parsed
+ * @param      quality  The variable to be set
+ */
+static void fixQuality(char token[], void *quality)
 {
     if(token[0] == '\0')
     {
@@ -159,7 +264,15 @@ void fixQuality(char token[], void *quality)
     }
 }
 
-void nSatellites(char token[], void *satellite)
+/**
+ * Parses the nSatellites
+ *
+ * nSatellites takes the number of satellites given by the token and sets the token value
+ * into a uint8 value through the use of atoi.
+ * @param      token      The token which contains the number of satellites
+ * @param      satellite  The variable to be set
+ */
+static void nSatellites(char token[], void *satellite)
 {
     if(token[0] == '\0')
     {
@@ -171,7 +284,15 @@ void nSatellites(char token[], void *satellite)
     }
 }
 
-void hdop(char token[], void *hdop)
+/**
+ * Parses the Horizontal Dilution of precision
+ *
+ * hdop takes the token containing the Horizontal Dilution of precision and
+ * sets the variable hdop from the respective message type to the token value
+ * @param      token  The token containing the Horizontal Dilution of precision
+ * @param      hdop   The variable to be set
+ */
+static void hdop(char token[], void *hdop)
 {
     if(token[0] == '\0')
     {
@@ -183,7 +304,15 @@ void hdop(char token[], void *hdop)
     }
 }
 
-void altitude(char token[], void *alt)
+/**
+ * Parses the altitude
+ *
+ * altitude takes the number in token and converts it to a float then sets
+ * the altitude variable of the corresponding message type.
+ * @param      token  The token with the altitude value
+ * @param      alt    The variable to be set
+ */
+static void altitude(char token[], void *alt)
 {
     if(token[0] == '\0')
     {
@@ -195,7 +324,15 @@ void altitude(char token[], void *alt)
     }
 }
 
-void elevation(char token[], void *elevation)
+/**
+ * Parses the elevation
+ *
+ * elevation takes the number in token and converts it to a float then sets
+ * the elevation variable of the corresponding message type.
+ * @param      token        The token with the elevation value
+ * @param      elevation    The variable to be set
+ */
+static void elevation(char token[], void *elevation)
 {
     if(token[0] == '\0')
     {
@@ -207,7 +344,14 @@ void elevation(char token[], void *elevation)
     }
 }
 
-void dGpsStale(char token[], void *stale)
+/**
+ * Parses the dGpsStale value
+ *
+ * dGpsStale takes the token and sets it to the stale value
+ * @param      token  The token containing dGpsStale
+ * @param      stale  The variable to be set
+ */
+static void dGpsStale(char token[], void *stale)
 {
     if(token[0] == '\0')
     {
@@ -219,7 +363,14 @@ void dGpsStale(char token[], void *stale)
     }
 }
 
-void dGpsID(char token[], void *ID)
+/**
+ * Parses the dGpsID value
+ *
+ * dGpsID takes the token and sets it to the ID value
+ * @param      token  The token containing dGpsID
+ * @param      ID     The variable to be set
+ */
+static void dGpsID(char token[], void *ID)
 {
     if(token[0] == '\0')
     {
@@ -231,7 +382,15 @@ void dGpsID(char token[], void *ID)
     }
 }
 
-void fixType(char token[], void *type)
+/**
+ * Parses the type value
+ *
+ * fixType takes the character from token and sets the
+ * char to type.
+ * @param      token  The token containing type
+ * @param      type   The variable to be set
+ */
+static void fixType(char token[], void *type)
 {
     if(token[0] == '\0')
     {
@@ -243,36 +402,17 @@ void fixType(char token[], void *type)
     }
 }
 
-NMEA_Function_Ptr_t GGA_table[] =
-{
-    {setID, &NMEA_Data.GGA.talkerID, FIELD_GGA_TIME},
-    {fixTime, &NMEA_Data.GGA.fixTime, FIELD_GGA_LAT},
-    {findLat, &NMEA_Data.GGA.latitude, FIELD_GGA_LAT_DIR},
-    {latDir, &NMEA_Data.GGA.latitude, FIELD_GGA_LONGITUDE},
-    {findLong, &NMEA_Data.GGA.longitude, FIELD_GGA_LONGITUDE_DIR},
-    {longDir, &NMEA_Data.GGA.longitude, FIELD_GGA_QUALITY},
-    {fixQuality, &NMEA_Data.GGA.fixQuality, FIELD_GGA_SATELLITES},
-    {nSatellites, &NMEA_Data.GGA.nSatellites, FIELD_GGA_HDOP},
-    {hdop, &NMEA_Data.GGA.hdop, FIELD_GGA_ALTITUDE},
-    {altitude, &NMEA_Data.GGA.altitude, FIELD_GGA_ALTITUDE_UNIT},
-    {NULL, 0, FIELD_GGA_ELEVATION},
-    {elevation, &NMEA_Data.GGA.elevation, FIELD_GGA_ELEVATION_UNIT},
-    {NULL, 0, FIELD_GGA_DGPSSTALE},
-    {dGpsStale, &NMEA_Data.GGA.dGpsStale, FIELD_GGA_DGPSID},
-    {dGpsID, &NMEA_Data.GGA.dGpsID, FIELD_GGA_END}
-};
-
-NMEA_Function_Ptr_t GLL_table[] =
-{
-    {setID, &NMEA_Data.GLL.talkerID, FIELD_GLL_LAT},
-    {findLat, &NMEA_Data.GLL.latitude, FIELD_GLL_LAT_DIR},
-    {latDir, &NMEA_Data.GLL.latitude, FIELD_GLL_LONGITUDE},
-    {findLong, &NMEA_Data.GLL.longitude, FIELD_GLL_LONGITUDE_DIR},
-    {longDir, &NMEA_Data.GLL.longitude, FIELD_GLL_TIME},
-    {fixTime, &NMEA_Data.GLL.fixTime, FIELD_GLL_FIXTYPE},
-    {fixType, &NMEA_Data.GLL.fixType, FIELD_GLL_END}
-};
-
+/**
+ * Parses one character from an NMEA stream.
+ * 
+ * NMEA_Decode takes in an NMEA stream one character at a time. When
+ * NMEA_Decode has received the entirety of a NMEA sentence, it will return the
+ * appropriate NMEA_Message_e to let the calling function know that it has
+ * successfully decoded a message. The decoded data is available in NMEA_Data
+ * in the respective type.
+ * @param  c Character to parse
+ * @return   NMEA_Message_e denoting message detected
+ */
 NMEA_Message_e NMEA_Decode(char c)
 {
     static state_e decodeState = START;
@@ -342,6 +482,8 @@ NMEA_Message_e NMEA_Decode(char c)
                             {
                                 next_expected_char = 'G';
                             }
+                            break;
+                        default:
                             break;
                     }
                     break;
@@ -416,6 +558,8 @@ NMEA_Message_e NMEA_Decode(char c)
                             decodeState = CHECKSUM;
                             next_field = FIELD_TALKER_ID;
                         }
+                        break;
+                    default:
                         break;
                 }
             }

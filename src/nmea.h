@@ -65,7 +65,7 @@ typedef enum state_
 
 typedef enum GGA_field_type_
 {
-    FIELD_TALKER_ID,
+    FIELD_TALKER_ID = 0,
     FIELD_GGA_TIME,
     FIELD_GGA_LAT,
     FIELD_GGA_LAT_DIR,
