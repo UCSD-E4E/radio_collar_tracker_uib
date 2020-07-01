@@ -13,8 +13,9 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
     //const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
+    const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
     for(i = 0; i < strlen(nmeaString); i++)
@@ -48,9 +49,22 @@ int main(int argc, char const *argv[])
                     printf("latitude = %f\n", NMEA_Data.GLL.latitude);
                     printf("longitude = %f\n", NMEA_Data.GLL.longitude);
                     printf("fixHour = %d\n", NMEA_Data.GLL.fixTime[0]);
-                    printf("fixMinute = %d\n", NMEA_Data.GGA.fixTime[1]);
-                    printf("fixSecond = %d\n", NMEA_Data.GGA.fixTime[2]);
+                    printf("fixMinute = %d\n", NMEA_Data.GLL.fixTime[1]);
+                    printf("fixSecond = %d\n", NMEA_Data.GLL.fixTime[2]);
                     printf("fixType = %c\n", NMEA_Data.GLL.fixType);
+                }
+                break;
+            case NMEA_MESSAGE_ZDA:
+                {
+                    printf("talkerID = %c\n", NMEA_Data.ZDA.talkerID);
+                    printf("fixHour = %d\n", NMEA_Data.ZDA.fixTime[0]);
+                    printf("fixMinute = %d\n", NMEA_Data.ZDA.fixTime[1]);
+                    printf("fixSecond = %d\n", NMEA_Data.ZDA.fixTime[2]);
+                    printf("day = %d\n", NMEA_Data.ZDA.day);
+                    printf("month = %d\n", NMEA_Data.ZDA.month);
+                    printf("year = %d\n", NMEA_Data.ZDA.year);
+                    printf("Zone Hours = %d\n", NMEA_Data.ZDA.zoneHours);
+                    printf("Zone Minutes = %d\n", NMEA_Data.ZDA.zoneMinutes);
                 }
                 break;
             case NMEA_MESSAGE_ERROR:

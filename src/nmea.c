@@ -22,11 +22,9 @@
  *
  *  DATE      WHO DESCRIPTION
  *  ----------------------------------------------------------------------------
- *  06/12/20  NH  Initial commit
- */
- /* DATE      WHO DESCRIPTION
- *  ----------------------------------------------------------------------------
+ *  06/30/20  EL  Added ZDA Parser
  *  06/29/20  EL  Added Documentation
+ *  06/12/20  NH  Initial commit
  */
 /******************************************************************************
  * Includes
@@ -52,10 +50,8 @@ NMEA_Data_u NMEA_Data;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-char dataID;
-char talkerID;
-static const NMEA_Function_Ptr_t GGA_table[];
-static const NMEA_Function_Ptr_t GLL_table[];
+static char dataID;
+static char talkerID;
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
@@ -73,13 +69,14 @@ static void elevation(char token[], void *elevation);
 static void dGpsStale(char token[], void *stale);
 static void dGpsID(char token[], void *ID);
 static void fixType(char token[], void *type);
+static void setDay(char token[], void *day);
+static void setMonth(char token[], void *month);
+static void setYear(char token[], void *year);
+static void fixZHours(char token[], void *zhours);
+static void fixZMinutes(char token[], void *zminutes);
 /******************************************************************************
- * Function Definitions
+ * Tables
  ******************************************************************************/
-/**
- * Initialization of variable state
- */
-
 /**
  * GGA_table[] is a table in the format {function, function input, next field}
  * including all the functions necessary to parse a GGA string.
@@ -118,11 +115,24 @@ static const NMEA_Function_Ptr_t GLL_table[] =
     {fixType, &NMEA_Data.GLL.fixType, FIELD_GLL_END}
 };
 
-void NMEA_Init(NMEA_Config_t* pConfig)
+/**
+ * ZDA_table[] is a table in the format {function, function input, next field}
+ * including all the functions necessary to parse a ZDA string.
+ */
+static const NMEA_Function_Ptr_t ZDA_table[] =
 {
+    {setID, &NMEA_Data.ZDA.talkerID, FIELD_ZDA_TIME},
+    {fixTime, &NMEA_Data.ZDA.fixTime, FIELD_ZDA_DAY},
+    {setDay, &NMEA_Data.ZDA.day, FIELD_ZDA_MONTH},
+    {setMonth, &NMEA_Data.ZDA.month, FIELD_ZDA_YEAR},
+    {setYear, &NMEA_Data.ZDA.year, FIELD_ZDA_ZHOURS},
+    {fixZHours, &NMEA_Data.ZDA.zoneHours, FIELD_ZDA_ZMINUTES},
+    {fixZMinutes, &NMEA_Data.ZDA.zoneMinutes, FIELD_ZDA_END}
+};
 
-}
-
+/******************************************************************************
+ * Function Definitions
+ ******************************************************************************/
 /**
  * Sets the ID.
  * 
@@ -248,7 +258,8 @@ static void longDir(char token[], void *longitude)
 /**
  * Parses the quality
  *
- * fixQuality takes the quality from the token and sets it as a uint8 value in the respective message type
+ * fixQuality takes the quality from the token and sets it as a uint8 value in 
+ * the respective message type
  * @param      token    The token which contains the quality and will be parsed
  * @param      quality  The variable to be set
  */
@@ -267,8 +278,8 @@ static void fixQuality(char token[], void *quality)
 /**
  * Parses the nSatellites
  *
- * nSatellites takes the number of satellites given by the token and sets the token value
- * into a uint8 value through the use of atoi.
+ * nSatellites takes the number of satellites given by the token and sets the 
+ * token value into a uint8 value through the use of atoi.
  * @param      token      The token which contains the number of satellites
  * @param      satellite  The variable to be set
  */
@@ -398,8 +409,112 @@ static void fixType(char token[], void *type)
     }
     else
     {
-        *(char *)type = token[0];
+        *(char *)type = atoi(token);
     }
+}
+
+/**
+ * Sets the day
+ *
+ * setDay sets the number in the token to the day variable of the corresponding
+ * message type
+ * @param      token  The token containing the day
+ * @param      day    The variable to be set
+ */
+static void setDay(char token[], void *day)
+{
+    if(token[0] == '\0')
+    {
+        *(uint8_t *)day = 0xFF;
+    }
+    else
+    {
+        *(uint8_t *)day = atoi(token);
+    }
+}
+
+/**
+ * Sets the Month
+ *
+ * setMonth sets the number in the token to the month variable in the
+ * corresponding message type
+ * @param      token  The token containing the month
+ * @param      month  The variable to be set
+ */
+static void setMonth(char token[], void *month)
+{
+    if(token[0] == '\0')
+    {
+        *(uint8_t *)month = 0xFF;
+    }
+    else
+    {
+        *(uint8_t *)month = atoi(token);
+    }
+}
+
+/**
+ * Sets the Year
+ *
+ * setYear sets the number in the token to the year variable in the
+ * corresponding message type
+ * @param      token  The token containing the year
+ * @param      year   The variable to be set
+ */
+static void setYear(char token[], void *year)
+{
+    if(token[0] == '\0')
+    {
+        *(int *)year = 0xFF;
+    }
+    else
+    {
+        *(int *)year = atoi(token);
+    }
+}
+
+/**
+ * Sets the Zone Hours
+ *
+ * fixZHours sets the number in the token to the zoneHours variable
+ * in the corresponding message type
+ * @param      token   The token containing the zone hours
+ * @param      zhours  The variable to be set
+ */
+static void fixZHours(char token[], void *zhours)
+{
+    if(token[0] == '\0')
+    {
+        *(uint8_t *)zhours = 0xFF;
+    }
+    else
+    {
+        *(uint8_t *)zhours = atoi(token);
+    }
+}
+
+/**
+ * Sets the Zone Minutes
+ *
+ * fixZMinutes sets the number in the token to the zoneMinutes variable
+ * in the corresponding message type
+ * @param      token     The token containing the zone minutes
+ * @param      zminutes  The variable to be set
+ */
+static void fixZMinutes(char token[], void *zminutes)
+{
+    if(token[0] == '\0')
+    {
+        *(uint8_t *)zminutes = 0xFF;
+    }
+    else
+    {
+        *(uint8_t *)zminutes = atoi(token);
+    }
+}
+void NMEA_Init(NMEA_Config_t* pConfig)
+{
+
 }
 
 /**
@@ -559,6 +674,17 @@ NMEA_Message_e NMEA_Decode(char c)
                             next_field = FIELD_TALKER_ID;
                         }
                         break;
+                    case NMEA_MESSAGE_ZDA:
+                        if(ZDA_table[next_field].field_func_ptr != NULL)
+                        {
+                            (ZDA_table[next_field].field_func_ptr)(str, ZDA_table[next_field].arg0);                   
+                        }
+                        next_field = ZDA_table[next_field].next_field;
+                        if(next_field == FIELD_ZDA_END)
+                        {
+                            decodeState = CHECKSUM;
+                            next_field = FIELD_TALKER_ID;
+                        }
                     default:
                         break;
                 }
