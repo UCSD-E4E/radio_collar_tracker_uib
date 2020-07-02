@@ -33,3 +33,8 @@ doxygen-doc
 *.cproject
 *.project
 *.settings
+src/.deps/
+
+src/nmeaTestData.txt
+
+src/main

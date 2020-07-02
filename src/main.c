@@ -3,9 +3,11 @@
  ******************************************************************************/
 #include "compass_sim.h"
 #include "nmea.h"
+#include "voltage_sim.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -22,6 +24,7 @@
  * Module Static Data
  ******************************************************************************/
 static int testCompass(void);
+static int testVoltage(void);
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
@@ -106,7 +109,19 @@ int main(int argc, char const *argv[])
     {
         printf("testCompass failed\n");
     }
+    else
+    {
+        printf("testCompass passed\n");
+    }
 
+    if(!testVoltage())
+    {
+        printf("testVoltage failed\n");
+    }
+    else
+    {
+        printf("testVoltage passed\n");
+    }
     return 0;
 }
 
@@ -118,7 +133,7 @@ static int testCompass(void)
 {
     Compass_Sim_Config_t simConfig;
     Compass_Config_t compassConfig;
-    double compassValue;
+    int16_t compassValue;
 
     /*
      * Local file dataStore.bin - this should work regardless of platform
@@ -142,11 +157,52 @@ static int testCompass(void)
         return 0;
     }
 
-    compassValue = Compass_Read();
-    printf("Compass: %lf\n", compassValue);
+    if(!Compass_Read(&compassValue))
+    {
+        printf("testCompass: Failed to read\n");
+        return 0;
+    }
+    printf("Compass: %d\n", compassValue);
 
     Compass_Sim_Deinit();
 
     return 1;
 
+}
+
+/**
+ * Simple test function for the Voltage Simulation module
+ * @return  1 if successful, otherwise 0
+ */
+static int testVoltage(void)
+{
+    Voltage_Sim_Config_t simConfig;
+    uint16_t voltageValue;
+
+    /* Local file voltageSim.bin - this should work regardless of platform */
+    simConfig.path = "voltageSim.bin";
+
+    /* This will be how the final API will be used. */
+    if(!Voltage_Sim_Init(&simConfig))
+    {
+        printf("testVoltage: failed to init simulator\n");
+        return 0;
+    }
+
+    if(!Voltage_Init())
+    {
+        printf("testVoltage: failed to init module\n");
+        return 0;
+    }
+
+    if(!Voltage_Read(&voltageValue))
+    {
+        printf("testVoltage: Failed to read\n");
+        return 0;
+    }
+
+    printf("Voltage: %u\n", voltageValue);
+
+    Voltage_Sim_Deinit();
+    return 1;
 }

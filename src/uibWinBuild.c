@@ -1,10 +1,12 @@
 /**
- * @file compass.h
+ * @file uibWinBuild.h
  *
  * @author Nathan Hui, nthui@eng.ucsd.edu
  * 
  * @description 
- * Radio Telemetry Tracker Compass Base Module Header
+ * Radio Telemetry Tracker UI Board FW Windows Build.  This program provides a
+ * way to test and simulate the UI Board FW without hardware (SIL).
+ *
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +24,17 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
- * 07/02/20  NH  Fixed organization, fixed value
- * 07/01/20  NH  Initial commit
+ * 07/02/20  NH  Initial commit
  */
-#ifndef __COMPASS_H__
-#define __COMPASS_H__
 
 /******************************************************************************
  * Includes
  ******************************************************************************/
+#include "compass_sim.h"
+#include "nmea.h"
+#include <stddef.h>
+#include <string.h>
+#include <stdio.h>
 #include <stdint.h>
 /******************************************************************************
  * Defines
@@ -39,40 +43,34 @@
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-/**
- * Compass Measurement Mode.
- */
-typedef enum Compass_Mode_
-{
-    Compass_Mode_Continuous = 0,    //!< Continuous measurement mode
-    Compass_Mode_Single = 1,        //!< Single measurement mode
-    Compass_Mode_Idle = 2          //!< Idle
-}Compass_Mode_e;
-/**
- * Compass Configuration Struct
- */
-typedef struct Compass_Config_
-{
-    Compass_Mode_e measMode;    //!< Desired Measurement mode
-}Compass_Config_t;
 
 /******************************************************************************
- * Symbol Prototypes
+ * Global Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Module Static Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Local Function Prototypes
+ ******************************************************************************/
+
+/******************************************************************************
+ * Function Definitions
  ******************************************************************************/
 /**
- * Initializes the Compass module
- * @param  pConfig Pointer to a Compass_Config_t struct with the desired 
- *                 configuration parameters
- * @return         1 if successful, 0 otherwise
+ * Program entry point
+ * @param  argc Arg Count
+ * @param  argv Arg Vector
+ * @return      0 on success, error code otherwise
  */
-int Compass_Init(Compass_Config_t* pConfig);
+int main(int argc, char const *argv[])
+{
+	const char* nmeaInputFile = "nmeaTestData.txt";
+	const char* compassSimFile = "compassSim.bin";
+	const char* voltageSimFile = "voltageSim.bin";
 
-/**
- * Reads the current heading from the compass module.  This is the magnetic
- * field vector projected onto the sensor's XY plane, reported in +/- decimal 
- * degrees from magnetic North.
- * @param	pValue	Pointer to an int16_t variable to populate.
- * @return  1 if successful, 0 otherwise
- */
-int Compass_Read(int16_t *pValue);
-#endif /* __COMPASS_H_ */
+	
+	return 0;
+}
