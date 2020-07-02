@@ -38,29 +38,18 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
-    //const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";  //!< GLL string example
-    //const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";      //!< ZDA string example
+    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,"
+        "545.4,M,46.9,M,,*47";
 
     for(i = 0; i < strlen(nmeaString); i++)
     {
         switch(NMEA_Decode(nmeaString[i]))
         {
             case NMEA_MESSAGE_NONE:
-                    continue;
+                continue;
             case NMEA_MESSAGE_GGA:
                 // deal with the data
                 break;
-            case NMEA_MESSAGE_GLL:
-                // deal with the data
-                break;
-            case NMEA_MESSAGE_ZDA:
-                // deal with the data
-                break;
-            case NMEA_MESSAGE_ERROR:
-                {
-                    return 1;
-                }
             default:
                 break;
         }
