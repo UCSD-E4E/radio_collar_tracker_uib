@@ -27,6 +27,7 @@
 # 
 ################################################################################
 
+CC=gcc
 SRCS = main.c nmea.c voltage_sim.c compass_sim.c
 CFLAGS = -std=gnu11 -c -g -Wall
 
