@@ -1,10 +1,10 @@
 /**
- * @file compass.h
+ * @file voltage.h
  *
  * @author Nathan Hui, nthui@eng.ucsd.edu
  * 
  * @description 
- * Radio Telemetry Tracker Compass Base Module Header
+ * Radio Telemetry Tracker Voltage Base Module Header
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,15 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
- * 07/02/20  NH  Fixed organization, fixed value
- * 07/01/20  NH  Initial commit
+ * 07/02/20  NH  Initial commit
  */
-#ifndef __COMPASS_H__
-#define __COMPASS_H__
+#ifndef __VOLTAGE_SIM_H__
+#define __VOLTAGE_SIM_H__
 
 /******************************************************************************
  * Includes
  ******************************************************************************/
-#include <stdint.h>
+#include "voltage.h"
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -39,40 +38,22 @@
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-/**
- * Compass Measurement Mode.
- */
-typedef enum Compass_Mode_
+typedef struct Voltage_Sim_Config_
 {
-    Compass_Mode_Continuous = 0,    //!< Continuous measurement mode
-    Compass_Mode_Single = 1,        //!< Single measurement mode
-    Compass_Mode_Idle = 2          //!< Idle
-}Compass_Mode_e;
-/**
- * Compass Configuration Struct
- */
-typedef struct Compass_Config_
-{
-    Compass_Mode_e measMode;    //!< Desired Measurement mode
-}Compass_Config_t;
-
+	const char* path;
+} Voltage_Sim_Config_t;
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
 /**
- * Initializes the Compass module
- * @param  pConfig Pointer to a Compass_Config_t struct with the desired 
- *                 configuration parameters
- * @return         1 if successful, 0 otherwise
- */
-int Compass_Init(Compass_Config_t* pConfig);
-
-/**
- * Reads the current heading from the compass module.  This is the magnetic
- * field vector projected onto the sensor's XY plane, reported in +/- decimal 
- * degrees from magnetic North.
- * @param	pValue	Pointer to an int16_t variable to populate.
+ * Initializes the Voltage module
+ * @param pConfig Voltage Simulation configuration
  * @return  1 if successful, 0 otherwise
  */
-int Compass_Read(int16_t *pValue);
-#endif /* __COMPASS_H_ */
+int Voltage_Sim_Init(Voltage_Sim_Config_t* pConfig);
+
+/**
+ * Deinitializes the Voltage module
+ */
+void Voltage_Sim_Deinit(void);
+#endif /* __VOLTAGE_SIM_H__ */

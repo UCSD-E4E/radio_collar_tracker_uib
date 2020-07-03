@@ -4,7 +4,7 @@
 # @author Nathan Hui, nthui@eng.ucsd.edu
 # 
 # @description
-# UI Board FW Makefile
+# UI Board FW Makefile.  This makefile expects GNU Make and GCC
 # 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU general Public License as published by the Free Software
@@ -22,15 +22,39 @@
 # 
 # DATE      WHO DESCRIPTION
 # -----------------------------------------------------------------------------
+# 07/02/20  NH  Rename to Makefile, added dependency checking
 # 07/01/20  NH  Initial Commit
 # 
 ################################################################################
 
+CC=gcc
+SRCS = main.c nmea.c voltage_sim.c compass_sim.c
 CFLAGS = -std=gnu11 -c -g -Wall
+
+SIM_OBJS = compass_sim.o voltage_sim.o
+
+DEPDIR := .deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
+
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
 
 .PHONY: clean
 
-main: main.o nmea.o compass_sim.o
+main: main.o nmea.o $(SIM_OBJS)
+
+uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS)
+
+%.o : %.c
+%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 clean:
 	-rm *.o main
+
+$(DEPDIR): ; @mkdir -p $@
+
+DEPFILES := $(SRCS:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
