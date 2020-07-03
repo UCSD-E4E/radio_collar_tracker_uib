@@ -3,9 +3,11 @@
  ******************************************************************************/
 #include "compass_sim.h"
 #include "nmea.h"
+#include "voltage_sim.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -22,6 +24,7 @@
  * Module Static Data
  ******************************************************************************/
 static int testCompass(void);
+static int testVoltage(void);
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
@@ -38,18 +41,65 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,"
-        "545.4,M,46.9,M,,*47";
+    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+    //const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
+    const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
+    /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
     for(i = 0; i < strlen(nmeaString); i++)
     {
         switch(NMEA_Decode(nmeaString[i]))
         {
             case NMEA_MESSAGE_NONE:
-                continue;
+                {
+                    continue;
+                }
             case NMEA_MESSAGE_GGA:
-                // deal with the data
+                {
+                    printf("talkerID = %c\n", NMEA_Data.GGA.talkerID);
+                    printf("fixHour = %d\n", NMEA_Data.GGA.fixTime[0]);
+                    printf("fixMinute = %d\n", NMEA_Data.GGA.fixTime[1]);
+                    printf("fixSecond = %d\n", NMEA_Data.GGA.fixTime[2]);
+                    printf("latitude = %f\n", NMEA_Data.GGA.latitude);
+                    printf("longitude = %f\n", NMEA_Data.GGA.longitude);
+                    printf("fixQuality = %d\n", NMEA_Data.GGA.fixQuality);
+                    printf("nSatellites = %d\n", NMEA_Data.GGA.nSatellites);
+                    printf("hdop = %f\n", NMEA_Data.GGA.hdop);
+                    printf("altitude = %f\n", NMEA_Data.GGA.altitude);
+                    printf("elevation = %f\n", NMEA_Data.GGA.elevation);
+                    printf("dGpsStale = %d\n", NMEA_Data.GGA.dGpsStale);
+                    printf("dGpsID = %d\n", NMEA_Data.GGA.dGpsID);
+                }
                 break;
+            case NMEA_MESSAGE_GLL:
+                {
+                    printf("talkerID = %c\n", NMEA_Data.GLL.talkerID);
+                    printf("latitude = %f\n", NMEA_Data.GLL.latitude);
+                    printf("longitude = %f\n", NMEA_Data.GLL.longitude);
+                    printf("fixHour = %d\n", NMEA_Data.GLL.fixTime[0]);
+                    printf("fixMinute = %d\n", NMEA_Data.GLL.fixTime[1]);
+                    printf("fixSecond = %d\n", NMEA_Data.GLL.fixTime[2]);
+                    printf("fixType = %c\n", NMEA_Data.GLL.fixType);
+                }
+                break;
+            case NMEA_MESSAGE_ZDA:
+                {
+                    printf("talkerID = %c\n", NMEA_Data.ZDA.talkerID);
+                    printf("fixHour = %d\n", NMEA_Data.ZDA.fixTime[0]);
+                    printf("fixMinute = %d\n", NMEA_Data.ZDA.fixTime[1]);
+                    printf("fixSecond = %d\n", NMEA_Data.ZDA.fixTime[2]);
+                    printf("day = %d\n", NMEA_Data.ZDA.day);
+                    printf("month = %d\n", NMEA_Data.ZDA.month);
+                    printf("year = %d\n", NMEA_Data.ZDA.year);
+                    printf("Zone Hours = %d\n", NMEA_Data.ZDA.zoneHours);
+                    printf("Zone Minutes = %d\n", NMEA_Data.ZDA.zoneMinutes);
+                }
+                break;
+            case NMEA_MESSAGE_ERROR:
+                {
+                    printf("error\n");
+                    return 1;
+                }
             default:
                 break;
         }
@@ -59,7 +109,19 @@ int main(int argc, char const *argv[])
     {
         printf("testCompass failed\n");
     }
+    else
+    {
+        printf("testCompass passed\n");
+    }
 
+    if(!testVoltage())
+    {
+        printf("testVoltage failed\n");
+    }
+    else
+    {
+        printf("testVoltage passed\n");
+    }
     return 0;
 }
 
@@ -71,7 +133,7 @@ static int testCompass(void)
 {
     Compass_Sim_Config_t simConfig;
     Compass_Config_t compassConfig;
-    double compassValue;
+    int16_t compassValue;
 
     /*
      * Local file dataStore.bin - this should work regardless of platform
@@ -95,11 +157,52 @@ static int testCompass(void)
         return 0;
     }
 
-    compassValue = Compass_Read();
-    printf("Compass: %lf\n", compassValue);
+    if(!Compass_Read(&compassValue))
+    {
+        printf("testCompass: Failed to read\n");
+        return 0;
+    }
+    printf("Compass: %d\n", compassValue);
 
     Compass_Sim_Deinit();
 
     return 1;
 
+}
+
+/**
+ * Simple test function for the Voltage Simulation module
+ * @return  1 if successful, otherwise 0
+ */
+static int testVoltage(void)
+{
+    Voltage_Sim_Config_t simConfig;
+    uint16_t voltageValue;
+
+    /* Local file voltageSim.bin - this should work regardless of platform */
+    simConfig.path = "voltageSim.bin";
+
+    /* This will be how the final API will be used. */
+    if(!Voltage_Sim_Init(&simConfig))
+    {
+        printf("testVoltage: failed to init simulator\n");
+        return 0;
+    }
+
+    if(!Voltage_Init())
+    {
+        printf("testVoltage: failed to init module\n");
+        return 0;
+    }
+
+    if(!Voltage_Read(&voltageValue))
+    {
+        printf("testVoltage: Failed to read\n");
+        return 0;
+    }
+
+    printf("Voltage: %u\n", voltageValue);
+
+    Voltage_Sim_Deinit();
+    return 1;
 }

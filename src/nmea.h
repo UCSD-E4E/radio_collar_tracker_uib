@@ -54,6 +54,69 @@ typedef enum NMEA_Message_
 }NMEA_Message_e;
 
 /**
+ * State of decoder.
+ */
+typedef enum state_
+{
+    START,
+    DATA_ID,
+    TALKER_ID,
+    MESSAGE_TYPE,
+    FIELDS,
+    CHECKSUM
+} state_e;
+
+/**
+ * list of fields for GGA
+ */
+typedef enum GGA_field_type_
+{
+    FIELD_TALKER_ID = 0,
+    FIELD_GGA_TIME,
+    FIELD_GGA_LAT,
+    FIELD_GGA_LAT_DIR,
+    FIELD_GGA_LONGITUDE,
+    FIELD_GGA_LONGITUDE_DIR,
+    FIELD_GGA_QUALITY,
+    FIELD_GGA_SATELLITES,
+    FIELD_GGA_HDOP,
+    FIELD_GGA_ALTITUDE,
+    FIELD_GGA_ALTITUDE_UNIT,
+    FIELD_GGA_ELEVATION,
+    FIELD_GGA_ELEVATION_UNIT,
+    FIELD_GGA_DGPSSTALE,
+    FIELD_GGA_DGPSID,
+    FIELD_GGA_END
+} GGA_field_type_e;
+
+/**
+ * list of fields for GLL
+ */
+typedef enum GLL_field_type_
+{
+    FIELD_GLL_LAT = 1,
+    FIELD_GLL_LAT_DIR,
+    FIELD_GLL_LONGITUDE,
+    FIELD_GLL_LONGITUDE_DIR,
+    FIELD_GLL_TIME,
+    FIELD_GLL_FIXTYPE,
+    FIELD_GLL_END
+} GLL_field_type_e;
+
+/**
+ * list of fields for ZDA
+ */
+typedef enum ZDA_field_type_
+{
+    FIELD_ZDA_TIME = 1,
+    FIELD_ZDA_DAY,
+    FIELD_ZDA_MONTH,
+    FIELD_ZDA_YEAR,
+    FIELD_ZDA_ZHOURS,
+    FIELD_ZDA_ZMINUTES,
+    FIELD_ZDA_END
+} ZDA_field_type_e;
+/**
  * NMEA Configuration Structure
  */
 typedef struct NMEA_Config_
@@ -75,9 +138,8 @@ typedef struct NMEA_Config_
 typedef struct NMEA_GGA_
 {
     char talkerID;          //!< Talker ID.  For the above example, 'P'
-    uint8_t fixHour;        //!< Fix Hour.  For the above example, 12
-    uint8_t fixMinute;      //!< Fix Minute.  For the above example, 35
-    uint8_t fixSecond;      //!< Fix Second.  For the above example, 19
+    uint8_t fixTime[3];     /*!< Fix Time.  For the above example, 12 hours,
+                                 35 minutes, 19 seconds */
     float latitude;         //!< Latitude.  For the above example, 48.127222
     float longitude;        //!< Longitude.  For the above example, 11.516667
     uint8_t fixQuality;     //!< Fix Quality.  For the above example, 1
@@ -106,15 +168,41 @@ typedef struct NMEA_GLL_
     char talkerID;          //!< Talker ID.  For the above example, 'P'
     float latitude;         //!< Latitude.  For the above example, 49.279444
     float longitude;        //!< Longitude.  For the above example, 123.186667
-    uint8_t fixHour;        //!< Fix Hour.  For the above example, 22
-    uint8_t fixMinute;      //!< Fix Minute.  For the above example, 54
-    uint8_t fixSecond;      //!< Fix Second.  For the above example, 44
+    uint8_t fixTime[3];     /*!< Fix Time.  For the above example, 22 hours,
+                                 54 minutes, 44 seconds */
     char fixType;           //!< Fix Mode.  For the above example, A
 }NMEA_GLL_t;
+
+/**
+ * NMEA ZDA Structure.  Integer fields not provided should be set to -1 (0xFF).
+ * Floating point fields not provided should be set to NaN.  Character fields
+ * not provided should be set to '\0'.
+ *
+ * Example: $GPZDA,201530.00,04,07,2002,00,00*60
+ */
+typedef struct NMEA_ZDA_
+{
+    char talkerID;          //!< Talker ID. For the above example, 'P'
+    uint8_t fixTime[3];     /*!< Fix Time.  For the above example, 20 hours,
+                                 15 minutes, 30 seconds */
+    uint8_t day;            //!< Day. For the above example, 4
+    uint8_t month;          //!< Month. For the above example, 7
+    int year;           //!< Year. For the above example, 2002
+    uint8_t zoneHours;      //!< Local Zone Hours. For the above example, 0xFF
+    uint8_t zoneMinutes;    //!< Local Zone Minutes. For the above example, 0xFF
+}NMEA_ZDA_t;
+
+typedef struct NMEA_Function_Ptr_
+{
+    void (*field_func_ptr)(char *, void *);
+    void *arg0;
+    int next_field;
+} NMEA_Function_Ptr_t;
 
 typedef union NMEA_Data_{
     NMEA_GGA_t GGA;
     NMEA_GLL_t GLL;
+    NMEA_ZDA_t ZDA;
 }NMEA_Data_u;
 
 extern NMEA_Data_u NMEA_Data;
