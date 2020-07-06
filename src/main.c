@@ -41,9 +41,9 @@ int main(int argc, char const *argv[])
 
     NMEA_Init(&nmeaConfig);
 
-    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+    const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
     //const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
-    const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
+    //const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
     for(i = 0; i < strlen(nmeaString); i++)

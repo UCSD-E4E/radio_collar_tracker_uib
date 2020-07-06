@@ -31,6 +31,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 07/05/20  EL  Compltered compass functions
  * 07/02/20  NH  Fixed value type
  * 07/01/20  NH  Initial commit
  */
@@ -39,7 +40,9 @@
  ******************************************************************************/
 #include "compass_sim.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <time.h>
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -104,6 +107,29 @@ int Compass_Init(Compass_Config_t* pConfig)
      */
     
     // FIXME
+    int16_t random_num;
+    int16_t buffer;
+    time_t random_var;
+
+    compassDesc.pFile = fopen(compassDesc.path, "rb");
+    if(compassDesc.pFile != NULL)
+    {
+        if(fread(&buffer, 2, 1, compassDesc.pFile) == 1)
+        {
+            if(buffer <= 180 && buffer >= -180)
+            {
+                return 1;
+            }
+        }
+        rewind(compassDesc.pFile);
+    }
+    if(compassDesc.pFile == NULL)
+    {
+        compassDesc.pFile = fopen(compassDesc.path, "w+b");
+    }
+    srand((unsigned) time(&random_var));
+    random_num = rand() % 360 - 180;
+    fwrite(&random_num, 2, 1, compassDesc.pFile);
     return 1;
 }
 
@@ -117,13 +143,22 @@ int Compass_Init(Compass_Config_t* pConfig)
 int Compass_Read(int16_t *pValue)
 {
     /*
-     * This function should read out the double stored address 0 of the file in
+     * This function should read out the int stored address 0 of the file in
      * pFile using standard I/O functions and return it in pValue.  It should 
      * return 0 if the Compass_Init function has not yet been called.
      */
     
     // FIXME
-    return 1;
+    if(compassDesc.pFile == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        rewind(compassDesc.pFile);
+        fread(pValue, 2, 1, compassDesc.pFile);
+        return 1;
+    }
 }
 
 /**
@@ -139,7 +174,15 @@ int Compass_Sim_Init(Compass_Sim_Config_t* pConfig)
      */
     
     // FIXME
-    return 1;
+    if(pConfig->path == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        compassDesc.path = pConfig->path;
+        return 1;
+    }
 }
 
 /**
@@ -153,5 +196,8 @@ void Compass_Sim_Deinit(void)
      */
     
     // FIXME
+    fclose(compassDesc.pFile);
+    compassDesc.pFile = NULL;
+    compassDesc.path = NULL;
     return;
 }
