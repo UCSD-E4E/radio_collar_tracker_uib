@@ -549,6 +549,7 @@ NMEA_Message_e NMEA_Decode(char c)
         case START:
             if(c == '$')
             {
+                message = NMEA_MESSAGE_NONE;
                 decodeState = DATA_ID;
             }
             break;
@@ -571,39 +572,50 @@ NMEA_Message_e NMEA_Decode(char c)
                     counter = 1;
                     break;
                 case 1:
-                    switch(*ptr1)
+                    if(ptr1 != NULL)
                     {
-                        case 'G':
-                            counter = 2;
-                            ptr2 = strchr("GLS", c);
-                            break;
-                        case 'R':
-                            counter = 2;
-                            if(c == 'M')
-                            {
-                                next_expected_char = 'C';
-                            }
-                            break;
-                        case 'Z':
-                            counter = 2;
-                            if(c == 'D')
-                            {
-                                next_expected_char = 'A';
-                            }
-                            break;
-                        case 'V':
-                            counter = 2;
-                            if(c == 'T')
-                            {
-                                next_expected_char = 'G';
-                            }
-                            break;
-                        default:
-                            break;
+                        switch(*ptr1)
+                        {
+                            case 'G':
+                                counter = 2;
+                                ptr2 = strchr("GLS", c);
+                                next_expected_char = 1;
+                                break;
+                            case 'R':
+                                counter = 2;
+                                if(c == 'M')
+                                {
+                                    next_expected_char = 'C';
+                                }
+                                break;
+                            case 'Z':
+                                counter = 2;
+                                if(c == 'D')
+                                {
+                                    next_expected_char = 'A';
+                                }
+                                break;
+                            case 'V':
+                                counter = 2;
+                                if(c == 'T')
+                                {
+                                    next_expected_char = 'G';
+                                }
+                                break;
+                            default:
+                                message = NMEA_MESSAGE_ERROR;
+                                break;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        counter = 2;
+                        message = NMEA_MESSAGE_ERROR;
                     }
                     break;
                 case 2:
-                    if(next_expected_char == 0)
+                    if(next_expected_char == 1)
                     {
                         if(*ptr2 == 'G' && c == 'A')
                         {
@@ -633,60 +645,79 @@ NMEA_Message_e NMEA_Decode(char c)
                             message = NMEA_MESSAGE_VTG;
                         }
                     }
+                    else
+                    {
+                        message = NMEA_MESSAGE_ERROR;
+                    }
                     decodeState = FIELDS;
                     break;
             }
             checksum ^= c;
             break;
         case FIELDS:
-            if(c != ',' && c != '*' && i < STRLENGTH)
+            if(message == NMEA_MESSAGE_ERROR)
             {
-                str[i++] = c;
+                if(c == '*')
+                {
+                    decodeState = CHECKSUM;
+                }
             }
             else
             {
-                str[i] = '\0';
-                i = 0;
-
-                switch(message)
+                if(c != ',' && c != '*' && i < STRLENGTH)
                 {
-                    case NMEA_MESSAGE_GGA:
-                        if(GGA_table[next_field].field_func_ptr != NULL)
-                        {
-                            (GGA_table[next_field].field_func_ptr)(str, GGA_table[next_field].arg0);                       
-                        }
-                        next_field = GGA_table[next_field].next_field;
-                        if(next_field == FIELD_GGA_END)
-                        {
-                            decodeState = CHECKSUM;
-                            next_field = FIELD_TALKER_ID;
-                        }
-                        break;
-                    case NMEA_MESSAGE_GLL:                   
-                        if(GLL_table[next_field].field_func_ptr != NULL)
-                        {
-                            (GLL_table[next_field].field_func_ptr)(str, GLL_table[next_field].arg0);                   
-                        }
-                        next_field = GLL_table[next_field].next_field;
-                        if(next_field == FIELD_GLL_END)
-                        {
-                            decodeState = CHECKSUM;
-                            next_field = FIELD_TALKER_ID;
-                        }
-                        break;
-                    case NMEA_MESSAGE_ZDA:
-                        if(ZDA_table[next_field].field_func_ptr != NULL)
-                        {
-                            (ZDA_table[next_field].field_func_ptr)(str, ZDA_table[next_field].arg0);                   
-                        }
-                        next_field = ZDA_table[next_field].next_field;
-                        if(next_field == FIELD_ZDA_END)
-                        {
-                            decodeState = CHECKSUM;
-                            next_field = FIELD_TALKER_ID;
-                        }
-                    default:
-                        break;
+                    str[i++] = c;
+                }
+                else
+                {
+                    str[i] = '\0';
+                    i = 0;
+
+                    switch(message)
+                    {
+                        case NMEA_MESSAGE_GGA:
+                            if(GGA_table[next_field].field_func_ptr != NULL)
+                            {
+                                (GGA_table[next_field].field_func_ptr)(str, GGA_table[next_field].arg0);                       
+                            }
+                            next_field = GGA_table[next_field].next_field;
+                            if(next_field == FIELD_GGA_END)
+                            {
+                                decodeState = CHECKSUM;
+                                next_field = FIELD_TALKER_ID;
+                            }
+                            break;
+                        case NMEA_MESSAGE_GLL:
+                            if(GLL_table[next_field].field_func_ptr != NULL)
+                            {
+                                (GLL_table[next_field].field_func_ptr)(str, GLL_table[next_field].arg0);                   
+                            }
+                            next_field = GLL_table[next_field].next_field;
+                            if(next_field == FIELD_GLL_END)
+                            {
+                                decodeState = CHECKSUM;
+                                next_field = FIELD_TALKER_ID;
+                            }
+                            break;
+                        case NMEA_MESSAGE_ZDA:
+                            if(ZDA_table[next_field].field_func_ptr != NULL)
+                            {
+                                (ZDA_table[next_field].field_func_ptr)(str, ZDA_table[next_field].arg0);                   
+                            }
+                            next_field = ZDA_table[next_field].next_field;
+                            if(next_field == FIELD_ZDA_END)
+                            {
+                                decodeState = CHECKSUM;
+                                next_field = FIELD_TALKER_ID;
+                            }
+                            break;
+                        default:
+                            if(c == '*')
+                            {
+                                decodeState = CHECKSUM;
+                            }
+                            break;
+                    }
                 }
             }
             if(c != '*')
@@ -695,23 +726,44 @@ NMEA_Message_e NMEA_Decode(char c)
             }
             break;
         case CHECKSUM:
-            if(c != '*')
+            if(message != NMEA_MESSAGE_ERROR)
             {
-                sum[char_count++] = c;
+                if(c != '*')
+                {
+                    sum[char_count++] = c;
+                }
+                if(char_count == 2)
+                {
+                    sum[char_count] = '\0';
+                    checksum_hex = strtol(sum, NULL, BASE);
+                    decodeState = START;
+                    counter = 0;
+                    char_count = 0;
+                    next_expected_char = 0;
+                    i = 0;
+                    if(checksum == checksum_hex)
+                    {
+                        checksum = 0;
+                        return message;
+                    }
+                    else
+                    {
+                        checksum = 0;
+                        return NMEA_MESSAGE_ERROR;
+                    }
+                }
             }
-            if(char_count == 2)
+            else
             {
                 sum[char_count] = '\0';
                 checksum_hex = strtol(sum, NULL, BASE);
-                if(checksum == checksum_hex)
-                {
-                    decodeState = START;
-                    return message;
-                }
-                else
-                {
-                    return NMEA_MESSAGE_ERROR;
-                }
+                decodeState = START;
+                counter = 0;
+                char_count = 0;
+                next_expected_char = 0;
+                i = 0;
+                checksum = 0;
+                return NMEA_MESSAGE_ERROR;
             }
             break;
         default:

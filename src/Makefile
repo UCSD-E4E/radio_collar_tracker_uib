@@ -28,10 +28,12 @@
 ################################################################################
 
 CC=gcc
-SRCS = main.c nmea.c voltage_sim.c compass_sim.c
-CFLAGS = -std=gnu11 -c -g -Wall
+SRCS = main.c nmea.c voltage_sim.c compass_sim.c sensor_encoder.c status_decoder.c sensor_module.c LED_module.c
+CFLAGS = -std=gnu11 -c -g -Wall -mno-ms-bitfields
 
 SIM_OBJS = compass_sim.o voltage_sim.o
+
+TEST_OBJS = sensor_encoder.o status_decoder.o sensor_module.o LED_module.o
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -41,7 +43,7 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 .PHONY: clean
 
-main: main.o nmea.o $(SIM_OBJS)
+main: main.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 
 uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS)
 
