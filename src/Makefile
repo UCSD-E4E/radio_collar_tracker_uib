@@ -22,6 +22,7 @@
 # 
 # DATE      WHO DESCRIPTION
 # -----------------------------------------------------------------------------
+# 08/09/20  NH  Added all, fixed simulation build objects
 # 08/07/20  NH  Added UIB simulation build
 # 07/02/20  NH  Rename to Makefile, added dependency checking
 # 07/01/20  NH  Initial Commit
@@ -33,7 +34,7 @@ SRCS = main.c nmea.c voltage_sim.c compass_sim.c uibWinBuild.c serial_sim.c
 CFLAGS = -std=gnu11 -c -g -Wall
 LDLIBS = -lpthread
 
-SIM_OBJS = compass_sim.o voltage_sim.o uibWinBuild.o serial_sim.o
+SIM_OBJS = compass_sim.o voltage_sim.o serial_sim.o
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -41,7 +42,9 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 
-.PHONY: clean
+.PHONY: clean all
+
+all: uibWinBuild main
 
 uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS)
 
