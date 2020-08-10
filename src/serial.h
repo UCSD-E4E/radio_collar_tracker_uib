@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/09/20  NH  Removed kbhit
  * 08/07/20  NH  Initial commit
  */
 #ifndef __SERIAL_H__
@@ -71,13 +72,6 @@ typedef struct SerialConfig_
  * @return         1 if successful, otherwise 0
  */
 SerialDesc_t* Serial_Init(SerialConfig_t* pConfig);
-
-/**
- * Checks if the specified serial port has data available
- * @param  pDesc Serial Descriptor
- * @return       1 if data available, otherwise 0
- */
-int Serial_HasData(SerialDesc_t* pDesc);
 
 /**
  * Attempts to read data into the provided buffer.  If data is not available,
