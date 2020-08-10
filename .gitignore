@@ -38,3 +38,6 @@ src/.deps/
 src/nmeaTestData.txt
 
 src/main
+
+src/uibWinBuild
+/.metadata/

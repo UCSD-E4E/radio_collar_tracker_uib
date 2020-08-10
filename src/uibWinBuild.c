@@ -24,6 +24,8 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/09/20  NH  Added boilerplate code
+ * 08/07/20  NH  Added serial and hardware initialization
  * 07/02/20  NH  Initial commit
  */
 
@@ -36,6 +38,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "serial_sim.h"
+#include "voltage_sim.h"
+#include <pthread.h>
+#include <time.h>
+
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -43,19 +50,52 @@
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-
+typedef struct globalParams_
+{
+	SerialDesc_t* pGPS;
+	SerialDesc_t* pOBC;
+}globalParams_t;
 /******************************************************************************
  * Global Data
  ******************************************************************************/
-
+globalParams_t globals;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-
+pthread_t timer;
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
+static int init();
+static int initSerial();
+static int initVoltage();
+static int initCompass();
+static int initTimer();
 
+static void* timerThread(void*);
+
+void app()
+{
+	uint8_t rxBuf[64];
+	int nchars;
+	while(1)
+	{
+		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
+		if(nchars > 0)
+		{
+		}
+
+		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
+		if(nchars > 0)
+		{
+		}
+	}
+}
+
+void timer1_IRQ()
+{
+
+}
 /******************************************************************************
  * Function Definitions
  ******************************************************************************/
@@ -67,10 +107,127 @@
  */
 int main(int argc, char const *argv[])
 {
-	const char* nmeaInputFile = "nmeaTestData.txt";
-	const char* compassSimFile = "compassSim.bin";
-	const char* voltageSimFile = "voltageSim.bin";
+	if(!init())
+	{
+		printf("Init failed\n");
+		return -1;
+	}
 
-	
+	app();
+
 	return 0;
+}
+
+/**
+ * Initializes all of the hardware
+ * @return 1 if successful, otherwise 0
+ */
+static int init()
+{
+	if(!initSerial())
+	{
+		return 0;
+	}
+
+	if(!initCompass())
+	{
+		return 0;
+	}
+
+	if(!initVoltage())
+	{
+		return 0;
+	}
+
+	if(!initTimer())
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/**
+ * Initializes the Serial ports
+ * @return 1 if successful, otherwise 0
+ */
+static int initSerial()
+{
+	SerialConfig_t serialConfig;
+
+
+	serialConfig.device = SerialDevice_GPS;
+	globals.pGPS = Serial_Init(&serialConfig);
+	if(!globals.pGPS)
+	{
+		return 0;
+	}
+
+	serialConfig.device = SerialDevice_OBC;
+	globals.pOBC = Serial_Init(&serialConfig);
+	if(!globals.pOBC)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+/**
+ * Initializes the voltage module
+ * @return 1 if successful, otherwise 0
+ */
+static int initVoltage()
+{
+	Voltage_Sim_Config_t config;
+	config.path = "voltageSim";
+
+	if(!Voltage_Sim_Init(&config))
+	{
+		return 0;
+	}
+	return 1;
+}
+
+/**
+ * Initializes the compass module
+ * @return 1 if successful, otherwise 0
+ */
+static int initCompass()
+{
+	Compass_Sim_Config_t config;
+	config.path = "compassSim";
+
+	if(!Compass_Sim_Init(&config))
+	{
+		return 0;
+	}
+	return 1;
+}
+
+/**
+ * Initializes the timer module
+ * @return 1 if successful, otherwise 0
+ */
+static int initTimer()
+{
+	if(pthread_create(&timer, NULL, &timerThread, NULL))
+	{
+		return 0;
+	}
+	return 1;
+}
+
+/**
+ * Timer interrupt simulator
+ */
+static void* timerThread(void* argp)
+{
+	struct timespec itv = {0, 200000000};
+	while(1)
+	{
+		nanosleep(&itv, NULL);
+		timer1_IRQ();
+	}
+	return NULL;
 }
