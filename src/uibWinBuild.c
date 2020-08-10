@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/09/20  NH  Added boilerplate code
  * 08/07/20  NH  Added serial and hardware initialization
  * 07/02/20  NH  Initial commit
  */
@@ -75,7 +76,25 @@ static void* timerThread(void*);
 
 void app()
 {
-	while(1);
+	uint8_t rxBuf[64];
+	int nchars;
+	while(1)
+	{
+		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
+		if(nchars > 0)
+		{
+		}
+
+		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
+		if(nchars > 0)
+		{
+		}
+	}
+}
+
+void timer1_IRQ()
+{
+
 }
 /******************************************************************************
  * Function Definitions
@@ -208,7 +227,7 @@ static void* timerThread(void* argp)
 	while(1)
 	{
 		nanosleep(&itv, NULL);
-		// timerIrq();
+		timer1_IRQ();
 	}
 	return NULL;
 }

@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/09/20  NH  Added simulator threads
  * 08/07/20  NH  Initial commit
  */
 #ifndef __SERIAL_SIM_H__
@@ -50,5 +51,13 @@ typedef struct SerialSim_Config_
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
+/**
+ * GPS Simulator thread
+ */
+void* gpsSimulator(void* argp);
 
+/**
+ * OBC Simulator thread
+ */
+void* obcSimulator(void* argp);
 #endif /* __SERIAL_SIM_H__ */
