@@ -312,7 +312,7 @@ void* gpsSimulator(void* argp)
 void* obcSimulator(void* argp)
 {
 	uint8_t heartbeatBuffer[25];
-	struct timespec itv = {0, 500000000};
+	struct timespec itv = {2, 0};
 	const char* obcInPipeName = "obc_in";
 	int obcInPipe = open(obcInPipeName, O_WRONLY | O_NONBLOCK);
 	const char* obcOutPipeName = "obc_out";

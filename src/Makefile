@@ -50,7 +50,7 @@ all: uibWinBuild main
 
 main: main.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 
-uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS)
+uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 
 main: main.o nmea.o $(SIM_OBJS)
 

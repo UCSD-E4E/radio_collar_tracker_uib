@@ -1,3 +1,6 @@
+/******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -5,10 +8,40 @@
 #include "status_decoder.h"
 #include "LED_module.h"
 
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
 extern uint16_t crc16(uint8_t *buffer, uint32_t len);
 extern uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS];
 extern uint8_t LEDsetState(int index, int value);
+/******************************************************************************
+ * Typedefs
+ ******************************************************************************/
 
+/******************************************************************************
+ * Global Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Module Static Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Local Function Prototypes
+ ******************************************************************************/
+
+/******************************************************************************
+ * Function Definitions
+ ******************************************************************************/
+/**
+ * Decodes a sensor packet received from the On Board Computer
+ *
+ * @param      data  The packet received
+ * @param      buf   The buffer to put the packet data into
+ * @param[in]  len   The length of the buffer
+ *
+ * @return     returns 0 if successful, 1 if otherwise
+ */
 int decodeSensorPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len)
 {
     uint16_t crc;
@@ -18,15 +51,14 @@ int decodeSensorPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len)
     {
         if(len < sizeof(DataStatusPacket_t))
         {
-            return 0;
+            return 1;
         }
         data->sync_char1 = buf[0];
         data->sync_char2 = buf[1];
         data->packet_class = buf[2];
         data->packet_id = buf[3];
         memcpy((uint8_t*) &data->payload_length, (uint8_t*) &buf[4], 2);
-        printf("length = %x\n", data->payload_length);
-        if(data->packet_class == 4 && data->packet_id == 3)
+        // if(data->packet_class == 4 && data->packet_id == 3)
         {
             data->payload.version = buf[6];
             data->payload.system_state = buf[7];
@@ -40,38 +72,9 @@ int decodeSensorPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len)
             data->payload.switch_state = buf[11];
             LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][data->payload.switch_state]);
             memcpy((uint8_t*) &data->payload.time, (uint8_t*) &buf[12], 8);
-            printf("time = %I64x\n", data->payload.time);
+            // printf("time = %lx\n", data->payload.time);
         }
         return 0;
     }
     return 1;
-}
-
-void testDataSensorDecoder()
-{
-    DataStatusPacket_t packet;
-    uint8_t buffer[256];
-    buffer[0] = 0xE4;
-    buffer[1] = 0xEB;
-    buffer[2] = 0x04;
-    buffer[3] = 0x03;
-    buffer[4] = 0x18;
-    buffer[5] = 0x00;
-    buffer[6] = 0x01;
-    buffer[7] = 0x04;
-    buffer[8] = 0x02;
-    buffer[9] = 0x03;
-    buffer[10] = 0x01;
-    buffer[11] = 0x00;
-    buffer[12] = 0x90;
-    buffer[13] = 0x74;
-    buffer[14] = 0x24;
-    buffer[15] = 0x81;
-    buffer[16] = 0x3c;
-    buffer[17] = 0x71;
-    buffer[18] = 0x08;
-    buffer[19] = 0x16;
-    buffer[20] = 0xba;
-    buffer[21] = 0x0b;
-    decodeSensorPacket(&packet, buffer, sizeof(buffer));
 }

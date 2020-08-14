@@ -13,10 +13,9 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-extern void testDataSensor();
-extern void testDataSensorDecoder();
 extern uint32_t sensorParse(char c);
 extern void LEDInit();
+extern int LEDcontrol();
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -50,30 +49,19 @@ int main(int argc, char const *argv[])
     //const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
-    /*
-     * 1. check for valid data in gps port no gps port so simulate with file?
-     * 2. if there is data, read data
-     * 3. parse gps data
-     * 4. encode data
-     * 5. check for valid data in obc port no gps port so simulate with file?
-     * 6. if there is data, read data
-     * 7. parse obc data status_decoder.c
-     * 8. set led
-     * 9. set up data to be sent
-    */
     LEDInit();
 
     while(1)
     {
-            LEDcontrol();
+        LEDcontrol();
             
         FILE* nmeaFP;
         char c;
 
-        nmeaFP = fopen("nmea.log", "r");
+        nmeaFP = fopen("gps.txt", "r");
         if(nmeaFP == NULL)
         {
-            printf("nmea.log does not exist\n");
+            printf("gps.txt does not exist\n");
             return -1;
         }
         while((c = getc(nmeaFP)) != EOF)
@@ -99,9 +87,6 @@ int main(int argc, char const *argv[])
         {
             printf("testVoltage passed\n");
         }
-
-        testDataSensor();
-        testDataSensorDecoder();
     }
     return 0;
 }

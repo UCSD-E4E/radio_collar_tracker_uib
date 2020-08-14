@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/13/20  EL  Tied the LED module, encoder, and decoder together
  * 08/09/20  NH  Added boilerplate code
  * 08/07/20  NH  Added serial and hardware initialization
  * 07/02/20  NH  Initial commit
@@ -42,11 +43,15 @@
 #include "voltage_sim.h"
 #include <pthread.h>
 #include <time.h>
+#include "status_decoder.h"
 
 /******************************************************************************
  * Defines
  ******************************************************************************/
-
+extern int LEDInit();
+extern int LEDcontrol();
+extern int decodeSensorPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len);
+extern int sensorParse(char c);
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -54,7 +59,7 @@ typedef struct globalParams_
 {
 	SerialDesc_t* pGPS;
 	SerialDesc_t* pOBC;
-}globalParams_t;
+} globalParams_t;
 /******************************************************************************
  * Global Data
  ******************************************************************************/
@@ -83,18 +88,28 @@ void app()
 		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
 		if(nchars > 0)
 		{
+			for(int i = 0; i < nchars; i++)
+			{
+				sensorParse(rxBuf[i]);
+			}
+
 		}
 
 		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
 		if(nchars > 0)
 		{
+			if(nchars == 22)
+			{
+				DataStatusPacket_t status_data;
+				decodeSensorPacket(&status_data, rxBuf, nchars);
+			}
 		}
 	}
 }
 
 void timer1_IRQ()
 {
-
+	LEDcontrol();
 }
 /******************************************************************************
  * Function Definitions
@@ -140,6 +155,11 @@ static int init()
 	}
 
 	if(!initTimer())
+	{
+		return 0;
+	}
+
+	if(!LEDInit())
 	{
 		return 0;
 	}
@@ -223,7 +243,7 @@ static int initTimer()
  */
 static void* timerThread(void* argp)
 {
-	struct timespec itv = {0, 200000000};
+	struct timespec itv = {0, 100000000};
 	while(1)
 	{
 		nanosleep(&itv, NULL);

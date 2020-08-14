@@ -1,3 +1,6 @@
+/******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include "compass_sim.h"
 #include "nmea.h"
 #include "voltage_sim.h"
@@ -5,10 +8,36 @@
 #include "sensor_module.h"
 #include <time.h>
 
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
 extern NMEA_Data_u NMEA_Data;
 extern uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len);
 extern NMEA_Message_e NMEA_Decode(char c);
+/******************************************************************************
+ * Typedefs
+ ******************************************************************************/
 
+/******************************************************************************
+ * Global Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Module Static Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Local Function Prototypes
+ ******************************************************************************/
+
+/******************************************************************************
+ * Function Definitions
+ ******************************************************************************/
+/**
+ * Reads the compass value in the file "dataStore.bin"
+ *
+ * @return     returns the compass value
+ */
 int16_t readCompass(void)
 {
     Compass_Sim_Config_t simConfig;
@@ -24,6 +53,11 @@ int16_t readCompass(void)
     return compassValue;
 }
 
+/**
+ * Reads the voltage value in the file "voltageSim.bin"
+ *
+ * @return     returns the voltage value
+ */
 int16_t readVoltage(void)
 {
     Voltage_Sim_Config_t simConfig;
@@ -37,6 +71,16 @@ int16_t readVoltage(void)
     return voltageValue;
 }
 
+/**
+ * Changes the time from year, month, day, hours, minutes, seconds, to time since Unix Epoch
+ *
+ * @param      year   The year
+ * @param      month  The month
+ * @param      day    The day
+ * @param      hms    The hours, minutes, and seconds
+ *
+ * @return     returns the time since Unix Epoch
+ */
 uint64_t changeTime(int *year, uint8_t *month, uint8_t *day, uint8_t hms[3])
 {
     struct tm t;
@@ -54,6 +98,11 @@ uint64_t changeTime(int *year, uint8_t *month, uint8_t *day, uint8_t hms[3])
     return t_of_day;
 }
 
+/**
+ * Sets the constant portion of the DataSensorPacket struct
+ *
+ * @param      packet  The packet
+ */
 void setPacket(DataSensorPacket_t *packet)
 {
     packet->sync_char1 = 0xE4;
@@ -66,27 +115,29 @@ void setPacket(DataSensorPacket_t *packet)
     packet->payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
 }
 
+/**
+ * Encodes the DataSensorPacket
+ *
+ * @param      packet  The packet to encode
+ */
 void encodePacket(DataSensorPacket_t *packet)
 {
     uint8_t buffer[256];
-    uint32_t length;
-    length = encodeSensorPacket(packet, buffer, sizeof(buffer));
-    for(int i = 0; i < length; i ++)
-    {
-        printf("%02x ", buffer[i]);
-        if((i % 2) == 0)
-        {
-            printf("\b");
-        }
-    }
-    printf("\n");
+    encodeSensorPacket(packet, buffer, sizeof(buffer));
 }
 
+/**
+ * Sets the packet to contain the right encoded data from the GPS port
+ *
+ * @param[in]  c     The data from the GPS port, char by char
+ *
+ * @return     returns PARSE_COMPLETE if successful, PARSE_NOT_COMPLETE if not
+ */
 int sensorParse(char c)
 {
-    static int ymd_ready = 0; // year month day ready
-    static int location_rdy = 0; // location ready
-    static int alt_rdy = 0;
+    static int ymd_ready = 0;       // year month day ready
+    static int location_rdy = 0;    // location ready
+    static int alt_rdy = 0;         // altitude ready
     static int type_set = 0;
     static int tmp_year;
     static uint8_t tmp_month;
@@ -164,11 +215,6 @@ int sensorParse(char c)
                 }
             }
             break;
-        case NMEA_MESSAGE_RMC:
-            {
-                // setPacket(&packet); // sets RMCpacket
-                // ymd_ready = 1;
-            }
         default:
             break;
     }

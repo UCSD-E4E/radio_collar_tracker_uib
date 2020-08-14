@@ -1,11 +1,43 @@
+/******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
 #include "sensor_encoder.h"
 
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
 #define POLY 0x1021
+/******************************************************************************
+ * Typedefs
+ ******************************************************************************/
 
+/******************************************************************************
+ * Global Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Module Static Data
+ ******************************************************************************/
+
+/******************************************************************************
+ * Local Function Prototypes
+ ******************************************************************************/
+
+/******************************************************************************
+ * Function Definitions
+ ******************************************************************************/
+/**
+ * Calculates a CRC-16-CCITT of the GPS data in buffer of length len
+ *
+ * @param      buffer  The buffer
+ * @param[in]  len     The length
+ *
+ * @return     { description_of_the_return_value }
+ */
 uint16_t crc16(uint8_t *buffer, uint32_t len) 
 {
     uint32_t i, j;
@@ -29,6 +61,15 @@ uint16_t crc16(uint8_t *buffer, uint32_t len)
     return crc;
 }
 
+/**
+ * Encodes a sensor packet with data from the GPS
+ *
+ * @param      data  The data to be encoded
+ * @param      buf   The buffer to put the data in
+ * @param[in]  len   The length of the buffer
+ *
+ * @return     { description_of_the_return_value }
+ */
 uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len)
 {
     uint16_t crc;
@@ -57,35 +98,4 @@ uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len
     buf[30] = crc_ptr[1];
     buf[31] = crc_ptr[0];
     return sizeof(DataSensorPacket_t) + 2;
-}
-
-void testDataSensor()
-{
-    DataSensorPacket_t packet;
-    uint8_t buffer[256];
-    uint32_t length;
-
-    packet.sync_char1 = 0xE4;
-    packet.sync_char2 = 0xEB;
-    packet.packet_class = 0x04;
-    packet.packet_id = 0x03;
-    packet.payload_length = sizeof(DataSensorInput_t);
-    packet.payload.version = 0x01;
-    packet.payload.time = 1594462143333;
-    packet.payload.latitude = 332030176;
-    packet.payload.longitude = -1165082935;
-    packet.payload.altitude = 12203;
-    packet.payload.heading = -81;
-    packet.payload.voltage = 4897;
-    packet.payload.fixType = 1;
-    length = encodeSensorPacket(&packet, buffer, sizeof(buffer));
-    for(int i = 0; i < length; i ++)
-    {
-        printf("%02x ", buffer[i]);
-        if((i % 2) == 0)
-        {
-            printf("\b");
-        }
-    }
-    printf("\n");
 }
