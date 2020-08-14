@@ -1,5 +1,4 @@
-# UI Board
-
+UI Board Files:
 nmea.c - determines what type of GPS message was received and fills a buffer with the GPS data.
 LED_module.c - initializes and converts the data values into LED states that the 5 LEDs use to show the data in the status packets.
 sensor_encoder.c - calls for the encoder after checking for the correct crc value.
