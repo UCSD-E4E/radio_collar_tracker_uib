@@ -50,7 +50,7 @@
  ******************************************************************************/
 extern int LEDInit();
 extern int LEDcontrol();
-extern int decodeSensorPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len);
+extern int decodeStatusPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len);
 extern int sensorParse(char c);
 /******************************************************************************
  * Typedefs
@@ -101,7 +101,7 @@ void app()
 			if(nchars == 22)
 			{
 				DataStatusPacket_t status_data;
-				decodeSensorPacket(&status_data, rxBuf, nchars);
+				decodeStatusPacket(&status_data, rxBuf, nchars);
 			}
 		}
 	}

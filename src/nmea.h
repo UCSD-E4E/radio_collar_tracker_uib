@@ -22,6 +22,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/16/20  EL  Fixed documentation
  * 06/12/20  NH  Initial commit
  */
 #ifndef __NMEA_H__
@@ -191,7 +192,9 @@ typedef struct NMEA_ZDA_
     uint8_t zoneHours;      //!< Local Zone Hours. For the above example, 0xFF
     uint8_t zoneMinutes;    //!< Local Zone Minutes. For the above example, 0xFF
 }NMEA_ZDA_t;
-
+/**
+ * Describes the table structure for the tables in nmea.c
+ */
 typedef struct NMEA_Function_Ptr_
 {
     void (*field_func_ptr)(char *, void *);
@@ -199,12 +202,18 @@ typedef struct NMEA_Function_Ptr_
     int next_field;
 } NMEA_Function_Ptr_t;
 
+/**
+ * Puts the different types of GPS messages into a union
+ */
 typedef union NMEA_Data_{
     NMEA_GGA_t GGA;
     NMEA_GLL_t GLL;
     NMEA_ZDA_t ZDA;
 }NMEA_Data_u;
 
+/**
+ * Creates the union
+ */
 extern NMEA_Data_u NMEA_Data;
 
 /******************************************************************************

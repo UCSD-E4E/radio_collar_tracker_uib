@@ -100,7 +100,6 @@ int Voltage_Init(void)
      * not populated, the file should be populated with random values.
      */
     
-    // FIXME
     int16_t random_num;
     int16_t buffer;
 
@@ -139,7 +138,6 @@ int Voltage_Read(uint16_t *pValue)
      * return 0 if the Voltage_Init function has not yet been called.
      */
     
-    // FIXME
     if(voltageDesc.pFile == NULL)
     {
         return 0;
@@ -164,7 +162,6 @@ int Voltage_Sim_Init(Voltage_Sim_Config_t* pConfig)
      * in pConfig
      */
     
-    // FIXME
     if(pConfig->path == NULL)
     {
         return 0;
@@ -186,7 +183,6 @@ void Voltage_Sim_Deinit(void)
      * voltageDesc.
      */
     
-    // FIXME
     fclose(voltageDesc.pFile);
     voltageDesc.pFile = NULL;
     voltageDesc.path = NULL;

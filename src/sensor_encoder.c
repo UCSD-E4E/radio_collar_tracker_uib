@@ -1,3 +1,32 @@
+/**
+ * @file sensor_encoder.h
+ *
+ * @author Eugene Lee
+ *
+ * @description
+ * Radio Telemetry Tracker sensor packet encoder and crc.
+ * 
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * DATE      WHO DESCRIPTION
+ * ----------------------------------------------------------------------------
+ * 08/16/20  EL  Fixed documentation
+ * 08/14/20  EL  Initial Commit
+ */
+
 /******************************************************************************
  * Includes
  ******************************************************************************/
@@ -36,7 +65,7 @@
  * @param      buffer  The buffer
  * @param[in]  len     The length
  *
- * @return     { description_of_the_return_value }
+ * @return     returns the crc value
  */
 uint16_t crc16(uint8_t *buffer, uint32_t len) 
 {
@@ -68,7 +97,7 @@ uint16_t crc16(uint8_t *buffer, uint32_t len)
  * @param      buf   The buffer to put the data in
  * @param[in]  len   The length of the buffer
  *
- * @return     { description_of_the_return_value }
+ * @return     returns length of packet if successful, 0 if otherwise
  */
 uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len)
 {

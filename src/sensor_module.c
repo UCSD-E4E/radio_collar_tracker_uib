@@ -1,3 +1,32 @@
+/**
+ * @file sensor_module.h
+ *
+ * @author Eugene Lee
+ * 
+ * @description
+ * Radio Telemetry Tracker sensor packet parser. Takes in a packet char by char and parses it.
+ * 
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * DATE      WHO DESCRIPTION
+ * ----------------------------------------------------------------------------
+ * 08/16/20  EL  Fixed voltage/compass functions
+ * 08/14/20  EL  Initial Commit
+ */
+
 /******************************************************************************
  * Includes
  ******************************************************************************/
@@ -11,9 +40,7 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-extern NMEA_Data_u NMEA_Data;
-extern uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len);
-extern NMEA_Message_e NMEA_Decode(char c);
+
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -46,10 +73,7 @@ int16_t readCompass(void)
     simConfig.path = "dataStore.bin";
     compassConfig.measMode = Compass_Mode_Continuous;
 
-    Compass_Sim_Init(&simConfig);
-    Compass_Init(&compassConfig);
     Compass_Read(&compassValue);
-    Compass_Sim_Deinit();
     return compassValue;
 }
 
@@ -64,10 +88,7 @@ int16_t readVoltage(void)
     uint16_t voltageValue;
     simConfig.path = "voltageSim.bin";
 
-    Voltage_Sim_Init(&simConfig);
-    Voltage_Init();
     Voltage_Read(&voltageValue);
-    Voltage_Sim_Deinit();
     return voltageValue;
 }
 

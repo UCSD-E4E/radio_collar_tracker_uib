@@ -106,7 +106,6 @@ int Compass_Init(Compass_Config_t* pConfig)
      * not populated, the file should be populated with random values.
      */
     
-    // FIXME
     int16_t random_num;
     int16_t buffer;
     time_t random_var;
@@ -173,7 +172,6 @@ int Compass_Sim_Init(Compass_Sim_Config_t* pConfig)
      * in pConfig
      */
     
-    // FIXME
     if(pConfig->path == NULL)
     {
         return 0;
@@ -195,7 +193,6 @@ void Compass_Sim_Deinit(void)
      * compassDesc.
      */
     
-    // FIXME
     fclose(compassDesc.pFile);
     compassDesc.pFile = NULL;
     compassDesc.path = NULL;

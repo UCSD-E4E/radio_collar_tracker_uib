@@ -22,6 +22,7 @@
  *
  *  DATE      WHO DESCRIPTION
  *  ----------------------------------------------------------------------------
+ *  08/16/20  EL  Merged similar functions
  *  06/30/20  EL  Added ZDA Parser
  *  06/29/20  EL  Added Documentation
  *  06/12/20  NH  Initial commit
@@ -61,19 +62,11 @@ static void findLat(char token[], void *lat);
 static void latDir(char token[], void *lat);
 static void findLong(char token[], void *longitude);
 static void longDir(char token[], void *longitude);
-static void fixQuality(char token[], void *quality);
-static void nSatellites(char token[], void *satellite);
-static void hdop(char token[], void *hdop);
-static void altitude(char token[], void *alt);
-static void elevation(char token[], void *elevation);
-static void dGpsStale(char token[], void *stale);
-static void dGpsID(char token[], void *ID);
+static void fixQS(char token[], void *qs);
+static void fixHAE(char token[], void *hae);
+static void eightBitInt(char token[], void *data_value);
 static void fixType(char token[], void *type);
-static void setDay(char token[], void *day);
-static void setMonth(char token[], void *month);
 static void setYear(char token[], void *year);
-static void fixZHours(char token[], void *zhours);
-static void fixZMinutes(char token[], void *zminutes);
 /******************************************************************************
  * Tables
  ******************************************************************************/
@@ -89,15 +82,15 @@ static const NMEA_Function_Ptr_t GGA_table[] =
     {latDir, &NMEA_Data.GGA.latitude, FIELD_GGA_LONGITUDE},
     {findLong, &NMEA_Data.GGA.longitude, FIELD_GGA_LONGITUDE_DIR},
     {longDir, &NMEA_Data.GGA.longitude, FIELD_GGA_QUALITY},
-    {fixQuality, &NMEA_Data.GGA.fixQuality, FIELD_GGA_SATELLITES},
-    {nSatellites, &NMEA_Data.GGA.nSatellites, FIELD_GGA_HDOP},
-    {hdop, &NMEA_Data.GGA.hdop, FIELD_GGA_ALTITUDE},
-    {altitude, &NMEA_Data.GGA.altitude, FIELD_GGA_ALTITUDE_UNIT},
+    {fixQS, &NMEA_Data.GGA.fixQuality, FIELD_GGA_SATELLITES},
+    {fixQS, &NMEA_Data.GGA.nSatellites, FIELD_GGA_HDOP},
+    {fixHAE, &NMEA_Data.GGA.hdop, FIELD_GGA_ALTITUDE},
+    {fixHAE, &NMEA_Data.GGA.altitude, FIELD_GGA_ALTITUDE_UNIT},
     {NULL, 0, FIELD_GGA_ELEVATION},
-    {elevation, &NMEA_Data.GGA.elevation, FIELD_GGA_ELEVATION_UNIT},
+    {fixHAE, &NMEA_Data.GGA.elevation, FIELD_GGA_ELEVATION_UNIT},
     {NULL, 0, FIELD_GGA_DGPSSTALE},
-    {dGpsStale, &NMEA_Data.GGA.dGpsStale, FIELD_GGA_DGPSID},
-    {dGpsID, &NMEA_Data.GGA.dGpsID, FIELD_GGA_END}
+    {eightBitInt, &NMEA_Data.GGA.dGpsStale, FIELD_GGA_DGPSID},
+    {eightBitInt, &NMEA_Data.GGA.dGpsID, FIELD_GGA_END}
 };
 
 /**
@@ -123,11 +116,11 @@ static const NMEA_Function_Ptr_t ZDA_table[] =
 {
     {setID, &NMEA_Data.ZDA.talkerID, FIELD_ZDA_TIME},
     {fixTime, &NMEA_Data.ZDA.fixTime, FIELD_ZDA_DAY},
-    {setDay, &NMEA_Data.ZDA.day, FIELD_ZDA_MONTH},
-    {setMonth, &NMEA_Data.ZDA.month, FIELD_ZDA_YEAR},
+    {eightBitInt, &NMEA_Data.ZDA.day, FIELD_ZDA_MONTH},
+    {eightBitInt, &NMEA_Data.ZDA.month, FIELD_ZDA_YEAR},
     {setYear, &NMEA_Data.ZDA.year, FIELD_ZDA_ZHOURS},
-    {fixZHours, &NMEA_Data.ZDA.zoneHours, FIELD_ZDA_ZMINUTES},
-    {fixZMinutes, &NMEA_Data.ZDA.zoneMinutes, FIELD_ZDA_END}
+    {eightBitInt, &NMEA_Data.ZDA.zoneHours, FIELD_ZDA_ZMINUTES},
+    {eightBitInt, &NMEA_Data.ZDA.zoneMinutes, FIELD_ZDA_END}
 };
 
 /******************************************************************************
@@ -174,7 +167,7 @@ static void fixTime(char token[], void *time)
 }
 
 /**
- * Calculates Latitude and parses it
+ * Converts latitude from degrees minutes seconds to decimal degrees
  * 
  * findLat takes the token with the latitude in degrees, minute form and
  * calculates the latitude solely in degrees then sets the value to the
@@ -200,7 +193,7 @@ static void findLat(char token[], void *lat)
 }
 
 /**
- * Puts a sign on the latitude
+ * Puts a sign on the latitude N/S
  *
  * latDir changes the latitude to be negative iff the token received is S
  * @param      token  The token with the direction of latitude (N or S)
@@ -215,7 +208,7 @@ static void latDir(char token[], void *lat)
 }
 
 /**
- * Calculates Longitude and parses it
+ * Converts longitude from degrees minutes seconds to decimal degrees
  * 
  * findLong takes the token with the longitude in degrees, minute form and
  * calculates the longitude solely in degrees then sets the value to the
@@ -241,7 +234,7 @@ static void findLong(char token[], void *longitude)
 }
 
 /**
- * Puts a sign on the longitude
+ * Puts a sign on the longitude E/W
  *
  * longDir changes the longitude to be negative iff the token received is S
  * @param      token        The token with the direction of longitude (N or S)
@@ -256,140 +249,65 @@ static void longDir(char token[], void *longitude)
 }
 
 /**
- * Parses the quality
+ * Parses the quality and number of satellites
  *
- * fixQuality takes the quality from the token and sets it as a uint8 value in 
- * the respective message type
- * @param      token    The token which contains the quality and will be parsed
- * @param      quality  The variable to be set
+ * fixQS takes the quality or number of satellites from the token
+ * and sets it as a uint8 value in the respective message type
+ * @param      token    The token which contains the quality
+ *                      or number of satellites and will be parsed
+ * @param      qs       The variable to be set
  */
-static void fixQuality(char token[], void *quality)
+static void fixQS(char token[], void *qs)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)quality = 0;
+        *(uint8_t *)qs = 0;
     }
     else
     {
-        *(uint8_t *)quality = atoi(token);
+        *(uint8_t *)qs = atoi(token);
     }
 }
 
 /**
- * Parses the nSatellites
+ * Parses the Horizontal Dilution of precision, altitude, and elevation
  *
- * nSatellites takes the number of satellites given by the token and sets the 
- * token value into a uint8 value through the use of atoi.
- * @param      token      The token which contains the number of satellites
- * @param      satellite  The variable to be set
+ * fixHAE takes the token containing the Horizontal Dilution of precision,
+ * altitude, or elevation and sets the variable hae from the respective
+ * message type to the token value
+ * @param      token  The token containing the Horizontal Dilution of precision,
+ *                    altitude, or elevation
+ * @param      hae   The variable to be set
  */
-static void nSatellites(char token[], void *satellite)
+static void fixHAE(char token[], void *hae)
 {
     if(token[0] == '\0')
     {
-        *(uint8_t *)satellite = 0;
+        *(float *)hae = 0;
     }
     else
     {
-        *(uint8_t *)satellite = atoi(token);
+        *(float *)hae = atof(token);
     }
 }
 
 /**
- * Parses the Horizontal Dilution of precision
+ * Parses the dGpsStale, dGpsID, day, month, zone hours, and zone minute values
  *
- * hdop takes the token containing the Horizontal Dilution of precision and
- * sets the variable hdop from the respective message type to the token value
- * @param      token  The token containing the Horizontal Dilution of precision
- * @param      hdop   The variable to be set
+ * eightBitInt takes the token and sets it to the stale value
+ * @param      token  The token containing dGpsStale, dGpsID, day, month,
+ *                    zone hours, or zone minutes
+ * @param      data_value  The variable to be set
  */
-static void hdop(char token[], void *hdop)
+static void eightBitInt(char token[], void *data_value)
 {
     if(token[0] == '\0')
     {
-        *(float *)hdop = 0;
+        *(uint8_t *)data_value = 0xFF;
     }
     else
     {
-        *(float *)hdop = atof(token);
-    }
-}
-
-/**
- * Parses the altitude
- *
- * altitude takes the number in token and converts it to a float then sets
- * the altitude variable of the corresponding message type.
- * @param      token  The token with the altitude value
- * @param      alt    The variable to be set
- */
-static void altitude(char token[], void *alt)
-{
-    if(token[0] == '\0')
-    {
-        *(float *)alt = 0;
-    }
-    else
-    {
-        *(float *)alt = atof(token);
-    }
-}
-
-/**
- * Parses the elevation
- *
- * elevation takes the number in token and converts it to a float then sets
- * the elevation variable of the corresponding message type.
- * @param      token        The token with the elevation value
- * @param      elevation    The variable to be set
- */
-static void elevation(char token[], void *elevation)
-{
-    if(token[0] == '\0')
-    {
-        *(float *)elevation = 0;
-    }
-    else
-    {
-        *(float *)elevation = atof(token);
-    }
-}
-
-/**
- * Parses the dGpsStale value
- *
- * dGpsStale takes the token and sets it to the stale value
- * @param      token  The token containing dGpsStale
- * @param      stale  The variable to be set
- */
-static void dGpsStale(char token[], void *stale)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)stale = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)stale = atoi(token);
-    }
-}
-
-/**
- * Parses the dGpsID value
- *
- * dGpsID takes the token and sets it to the ID value
- * @param      token  The token containing dGpsID
- * @param      ID     The variable to be set
- */
-static void dGpsID(char token[], void *ID)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)ID = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)ID = atoi(token);
+        *(uint8_t *)data_value = atoi(token);
     }
 }
 
@@ -414,46 +332,6 @@ static void fixType(char token[], void *type)
 }
 
 /**
- * Sets the day
- *
- * setDay sets the number in the token to the day variable of the corresponding
- * message type
- * @param      token  The token containing the day
- * @param      day    The variable to be set
- */
-static void setDay(char token[], void *day)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)day = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)day = atoi(token);
-    }
-}
-
-/**
- * Sets the Month
- *
- * setMonth sets the number in the token to the month variable in the
- * corresponding message type
- * @param      token  The token containing the month
- * @param      month  The variable to be set
- */
-static void setMonth(char token[], void *month)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)month = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)month = atoi(token);
-    }
-}
-
-/**
  * Sets the Year
  *
  * setYear sets the number in the token to the year variable in the
@@ -473,45 +351,6 @@ static void setYear(char token[], void *year)
     }
 }
 
-/**
- * Sets the Zone Hours
- *
- * fixZHours sets the number in the token to the zoneHours variable
- * in the corresponding message type
- * @param      token   The token containing the zone hours
- * @param      zhours  The variable to be set
- */
-static void fixZHours(char token[], void *zhours)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)zhours = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)zhours = atoi(token);
-    }
-}
-
-/**
- * Sets the Zone Minutes
- *
- * fixZMinutes sets the number in the token to the zoneMinutes variable
- * in the corresponding message type
- * @param      token     The token containing the zone minutes
- * @param      zminutes  The variable to be set
- */
-static void fixZMinutes(char token[], void *zminutes)
-{
-    if(token[0] == '\0')
-    {
-        *(uint8_t *)zminutes = 0xFF;
-    }
-    else
-    {
-        *(uint8_t *)zminutes = atoi(token);
-    }
-}
 void NMEA_Init(NMEA_Config_t* pConfig)
 {
 
@@ -549,6 +388,7 @@ NMEA_Message_e NMEA_Decode(char c)
         case START:
             if(c == '$')
             {
+                checksum = 0;
                 message = NMEA_MESSAGE_NONE;
                 decodeState = DATA_ID;
             }
@@ -762,7 +602,6 @@ NMEA_Message_e NMEA_Decode(char c)
                 char_count = 0;
                 next_expected_char = 0;
                 i = 0;
-                checksum = 0;
                 return NMEA_MESSAGE_ERROR;
             }
             break;
