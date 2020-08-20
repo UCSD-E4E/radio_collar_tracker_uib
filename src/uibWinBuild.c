@@ -44,6 +44,7 @@
 #include <pthread.h>
 #include <time.h>
 #include "status_decoder.h"
+#include "sensor_encoder.h"
 
 /******************************************************************************
  * Defines
@@ -64,6 +65,7 @@ typedef struct globalParams_
  * Global Data
  ******************************************************************************/
 globalParams_t globals;
+extern DataSensorPacket_t sensor_packet;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
@@ -83,6 +85,8 @@ void app()
 {
 	uint8_t rxBuf[64];
 	int nchars;
+	int tmp_count = 0;
+	uint8_t tmp_buf[64];
 	while(1)
 	{
 		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
@@ -92,16 +96,19 @@ void app()
 			{
 				sensorParse(rxBuf[i]);
 			}
-
+			Serial_Write(globals.pOBC, (uint8_t *) &sensor_packet, sizeof(sensor_packet));
 		}
 
 		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
 		if(nchars > 0)
 		{
-			if(nchars == 22)
+			memcpy(&tmp_buf[tmp_count], &rxBuf, nchars);
+			tmp_count += nchars;
+			if(tmp_count >= 22)
 			{
+				tmp_count = 0;
 				DataStatusPacket_t status_data;
-				decodeStatusPacket(&status_data, rxBuf, nchars);
+				decodeStatusPacket(&status_data, tmp_buf, nchars);
 			}
 		}
 	}

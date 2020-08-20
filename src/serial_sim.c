@@ -34,9 +34,6 @@
 
 #include "serial_sim.h"
 
-#include <bits/stdint-uintn.h>
-#include <bits/types/FILE.h>
-#include <bits/types/struct_timespec.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stddef.h>

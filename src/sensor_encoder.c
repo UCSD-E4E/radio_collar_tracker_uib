@@ -110,16 +110,16 @@ uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len
     buf[1] = data->sync_char2;
     buf[2] = data->packet_class;
     buf[3] = data->packet_id;
-    memcpy(&buf[4], (uint8_t*) &data->payload_length, 2);
+    memcpy(&buf[4], (uint8_t*) &data->payload_length, sizeof(data->payload_length));
     if(data->packet_class == 4 && data->packet_id == 3)
     {
         buf[6] = data->payload.version;
-        memcpy(&buf[7], (uint8_t*) &data->payload.time, 8);
-        memcpy(&buf[15], (uint8_t*) &data->payload.latitude, 4);
-        memcpy(&buf[19], (uint8_t*) &data->payload.longitude, 4);
-        memcpy(&buf[23], (uint8_t*) &data->payload.altitude, 2);
-        memcpy(&buf[25], (uint8_t*) &data->payload.heading, 2);
-        memcpy(&buf[27], (uint8_t*) &data->payload.voltage, 2);
+        memcpy(&buf[7], (uint8_t*) &data->payload.time, sizeof(data->payload.time));
+        memcpy(&buf[15], (uint8_t*) &data->payload.latitude, sizeof(data->payload.latitude));
+        memcpy(&buf[19], (uint8_t*) &data->payload.longitude, sizeof(data->payload.longitude));
+        memcpy(&buf[23], (uint8_t*) &data->payload.altitude, sizeof(data->payload.altitude));
+        memcpy(&buf[25], (uint8_t*) &data->payload.heading, sizeof(data->payload.heading));
+        memcpy(&buf[27], (uint8_t*) &data->payload.voltage, sizeof(data->payload.voltage));
         buf[29] = data->payload.fixType;
     }
     crc = crc16(buf, 30);

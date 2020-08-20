@@ -23,7 +23,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
- * 08/16/20  EL  Fixed voltage/compass functions
+ * 08/16/20  EL  Fixed voltage/compass
  * 08/14/20  EL  Initial Commit
  */
 
@@ -48,7 +48,7 @@
 /******************************************************************************
  * Global Data
  ******************************************************************************/
-
+DataSensorPacket_t sensor_packet;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
@@ -67,11 +67,7 @@
  */
 int16_t readCompass(void)
 {
-    Compass_Sim_Config_t simConfig;
-    Compass_Config_t compassConfig;
     int16_t compassValue;
-    simConfig.path = "dataStore.bin";
-    compassConfig.measMode = Compass_Mode_Continuous;
 
     Compass_Read(&compassValue);
     return compassValue;
@@ -84,9 +80,7 @@ int16_t readCompass(void)
  */
 int16_t readVoltage(void)
 {
-    Voltage_Sim_Config_t simConfig;
     uint16_t voltageValue;
-    simConfig.path = "voltageSim.bin";
 
     Voltage_Read(&voltageValue);
     return voltageValue;
@@ -132,23 +126,10 @@ void setPacket(DataSensorPacket_t *packet)
     packet->packet_id = 0x03;
     packet->payload.version = 0x01;
     packet->payload_length = sizeof(DataSensorInput_t);
-    packet->payload.heading = readCompass(); //the number in dataStore.bin (pValue);
-    packet->payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
 }
 
 /**
- * Encodes the DataSensorPacket
- *
- * @param      packet  The packet to encode
- */
-void encodePacket(DataSensorPacket_t *packet)
-{
-    uint8_t buffer[256];
-    encodeSensorPacket(packet, buffer, sizeof(buffer));
-}
-
-/**
- * Sets the packet to contain the right encoded data from the GPS port
+ * Sets the sensor_packet to contain the right encoded data from the GPS port
  *
  * @param[in]  c     The data from the GPS port, char by char
  *
@@ -164,30 +145,27 @@ int sensorParse(char c)
     static uint8_t tmp_month;
     static uint8_t tmp_day;
     static int ZDA_ymd_set = 0;
-    static DataSensorPacket_t packet;
-
-    packet.payload.fixType = 1;
 
     switch(NMEA_Decode(c))
     {
         case NMEA_MESSAGE_GGA:
             {
-                setPacket(&packet);
+                setPacket(&sensor_packet);
 
-                packet.payload.fixType = NMEA_Data.GGA.fixQuality;
+                sensor_packet.payload.fixType = NMEA_Data.GGA.fixQuality;
                 type_set = 1;
 
                 if(NMEA_Data.GGA.fixQuality != 0)
                 {
-                    packet.payload.latitude = (int32_t) (NMEA_Data.GGA.latitude * 1e7);
-                    packet.payload.longitude = (int32_t) (NMEA_Data.GGA.longitude * 1e7);
-                    packet.payload.altitude = (uint16_t) (NMEA_Data.GGA.altitude * 10);
+                    sensor_packet.payload.latitude = (int32_t) (NMEA_Data.GGA.latitude * 1e7);
+                    sensor_packet.payload.longitude = (int32_t) (NMEA_Data.GGA.longitude * 1e7);
+                    sensor_packet.payload.altitude = (uint16_t) (NMEA_Data.GGA.altitude * 10);
                     location_rdy = 1;
                     alt_rdy = 1;
 
                     if(ZDA_ymd_set == 1)
                     {
-                        packet.payload.time = changeTime(&tmp_year, &tmp_month, &tmp_day, NMEA_Data.GGA.fixTime);
+                        sensor_packet.payload.time = changeTime(&tmp_year, &tmp_month, &tmp_day, NMEA_Data.GGA.fixTime);
                         ymd_ready = 1;
                     }
                 }
@@ -195,34 +173,34 @@ int sensorParse(char c)
             break;
         case NMEA_MESSAGE_GLL:
             {
-                setPacket(&packet);
+                setPacket(&sensor_packet);
 
                 if(NMEA_Data.GLL.fixType != 'V')
                 {
-                    packet.payload.latitude = (int32_t) (NMEA_Data.GLL.latitude * 1e7);
-                    packet.payload.longitude = (int32_t) (NMEA_Data.GLL.longitude * 1e7);
+                    sensor_packet.payload.latitude = (int32_t) (NMEA_Data.GLL.latitude * 1e7);
+                    sensor_packet.payload.longitude = (int32_t) (NMEA_Data.GLL.longitude * 1e7);
                     location_rdy = 1;
 
                     if(ZDA_ymd_set == 1)
                     {
-                        packet.payload.time = changeTime(&tmp_year, &tmp_month, &tmp_day, NMEA_Data.GLL.fixTime);
+                        sensor_packet.payload.time = changeTime(&tmp_year, &tmp_month, &tmp_day, NMEA_Data.GLL.fixTime);
                         ymd_ready = 1;
                     }
                 }
                 else
                 {
-                    packet.payload.fixType = 0;
+                    sensor_packet.payload.fixType = 0;
                     type_set = 1;
                 }
             }
             break;
         case NMEA_MESSAGE_ZDA:
             {
-                setPacket(&packet);
+                setPacket(&sensor_packet);
 
                 if(NMEA_Data.ZDA.fixTime[0] != 0xFF && NMEA_Data.ZDA.fixTime[1] != 0xFF && NMEA_Data.ZDA.fixTime[2] != 0xFF) //ZDA has no fixType like input
                 {
-                    packet.payload.time = changeTime(&NMEA_Data.ZDA.year, &NMEA_Data.ZDA.month, &NMEA_Data.ZDA.day, NMEA_Data.ZDA.fixTime);
+                    sensor_packet.payload.time = changeTime(&NMEA_Data.ZDA.year, &NMEA_Data.ZDA.month, &NMEA_Data.ZDA.day, NMEA_Data.ZDA.fixTime);
                     tmp_year = NMEA_Data.ZDA.year;
                     tmp_month = NMEA_Data.ZDA.month;
                     tmp_day = NMEA_Data.ZDA.day;
@@ -231,7 +209,7 @@ int sensorParse(char c)
                 }
                 else
                 {
-                    packet.payload.fixType = 0;
+                    sensor_packet.payload.fixType = 0;
                     type_set = 1;
                 }
             }
@@ -239,10 +217,12 @@ int sensorParse(char c)
         default:
             break;
     }
+    sensor_packet.payload.heading = readCompass(); //the number in dataStore.bin (pValue);
+    sensor_packet.payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
     if(ymd_ready == 1 && location_rdy == 1 && alt_rdy == 1 && type_set == 1)
     {
-        encodePacket(&packet);
-        memset(&packet, 0, sizeof(DataSensorPacket_t));
+        uint8_t buffer[256];
+        encodeSensorPacket(&sensor_packet, buffer, sizeof(buffer));
         ymd_ready = 0;
         alt_rdy = 0;
         location_rdy = 0;

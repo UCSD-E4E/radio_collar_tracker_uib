@@ -45,12 +45,12 @@
 /******************************************************************************
  * Global Data
  ******************************************************************************/
-uint8_t led_state[5] = {0, 0, 0, 0, 0};
-uint8_t led_buf;
+
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-
+static uint8_t led_state[5] = {0, 0, 0, 0, 0};
+static uint8_t led_buf;
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
@@ -75,7 +75,8 @@ int LEDInit()
  * Sets the target LED at index to the value "value"
  * 
  * The LED values can range from 0 to 4. For most LEDs,
- * 0 is blink 5Hz, 1 is on, 2 is off, and 3 is blink 1Hz
+ * 0 is blink 5Hz, 1 is on, 2 is off, and 3 is blink 1Hz. The LED values are named as what they do
+ * through an enum (ON, OFF, BLINK5, BLINK1).
  *
  * @param[in]  index  The target LED to be set
  * @param[in]  value  The value to set the LED to
