@@ -41,10 +41,6 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-#define MAX_STATUS 5 // number of status LEDs
-extern uint16_t crc16(uint8_t *buffer, uint32_t len);
-extern uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS];
-extern uint8_t LEDsetState(int index, int value);
 uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS] =
 {
     {LED_5HZ, LED_OFF, LED_1HZ, LED_ON, LED_OFF}, // System LED

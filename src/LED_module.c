@@ -75,8 +75,8 @@ int LEDInit()
  * Sets the target LED at index to the value "value"
  * 
  * The LED values can range from 0 to 4. For most LEDs,
- * 0 is blink 5Hz, 1 is on, 2 is off, and 3 is blink 1Hz. The LED values are named as what they do
- * through an enum (ON, OFF, BLINK5, BLINK1).
+ * 0 is blink 5Hz, 1 is on, 2 is off, and 3 is blink 1Hz. The LED values are categorized
+ * through the enum LED_STATE_e.
  *
  * @param[in]  index  The target LED to be set
  * @param[in]  value  The value to set the LED to
@@ -95,7 +95,8 @@ int LEDsetState(int index, int value)
 }
 
 /**
- * LEDcontrol sets the LED buffer to 1 of 4 different states based on the value received from LEDsetState
+ * LEDcontrol sets the LED buffer to 1 of 4 different states based on the value received from LEDsetState.
+ * The LED values are categorized through the enum LED_STATE_e.
  *
  * @return     returns 0
  */

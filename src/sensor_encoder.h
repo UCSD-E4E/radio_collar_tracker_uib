@@ -68,4 +68,8 @@ typedef struct DataSensorPacket_
     DataSensorInput_t payload;
 } __attribute__((packed)) DataSensorPacket_t;
 
+/******************************************************************************
+ * Symbol Prototypes
+ ******************************************************************************/
+
 #endif /* __SENSOR_ENCODER_H__ */

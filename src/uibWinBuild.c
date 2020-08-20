@@ -33,26 +33,17 @@
 /******************************************************************************
  * Includes
  ******************************************************************************/
+#include "uibWinBuild.h"
 #include "compass_sim.h"
 #include "nmea.h"
-#include <stddef.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
 #include "serial_sim.h"
 #include "voltage_sim.h"
 #include <pthread.h>
 #include <time.h>
-#include "status_decoder.h"
-#include "sensor_encoder.h"
-
 /******************************************************************************
  * Defines
  ******************************************************************************/
-extern int LEDInit();
-extern int LEDcontrol();
-extern int decodeStatusPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len);
-extern int sensorParse(char c);
+
 /******************************************************************************
  * Typedefs
  ******************************************************************************/

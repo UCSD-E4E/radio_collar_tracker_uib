@@ -35,9 +35,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include "LED_module.h"
 /******************************************************************************
  * Defines
  ******************************************************************************/
+#define MAX_STATUS 5 // number of status LEDs
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -67,5 +69,34 @@ typedef struct DataStatusPacket_
     uint16_t payload_length;
     DataStatusInput_t payload;
 } __attribute__((packed)) DataStatusPacket_t;
+
+/******************************************************************************
+ * Symbol Prototypes
+ ******************************************************************************/
+/**
+ * Calculates a CRC-16-CCITT for a buffer of length len
+ *
+ * @param      buffer  The buffer
+ * @param[in]  len     The length
+ *
+ * @return     returns the crc value
+ */
+uint16_t crc16(uint8_t *buffer, uint32_t len);
+
+/**
+ * The table of possible LED states.
+ */
+uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS];
+
+/**
+ * Sets an LED at index to the action corresponding to value.
+ *
+ * @param[in]  index  The index of the LED wanting to be set
+ * @param[in]  value  The value which corresponds to one of four options:
+ *                    on, off, blink 1hz, blink 5hz.
+ *
+ * @return     returns 0 if successful, 1 if otherwise
+ */
+int LEDsetState(int index, int value);
 
 #endif /* __STATUS_DECODER_H__ */

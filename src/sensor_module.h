@@ -53,14 +53,17 @@ typedef enum sensor_status_
  */
 extern NMEA_Data_u NMEA_Data;
 
+/******************************************************************************
+ * Symbol Prototypes
+ ******************************************************************************/
 /**
  * encodes a receives sensor packet and puts the data into a buffer, buf, of length len.
  */
-extern uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len);
+uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len);
 
 /**
  * Decodes an NMEA GPS message
  */
-extern NMEA_Message_e NMEA_Decode(char c);
+NMEA_Message_e NMEA_Decode(char c);
 
 #endif /* __SENSOR_MODULE_H__ */

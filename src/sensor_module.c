@@ -145,6 +145,7 @@ int sensorParse(char c)
     static uint8_t tmp_month;
     static uint8_t tmp_day;
     static int ZDA_ymd_set = 0;
+    uint8_t buffer[256];
 
     switch(NMEA_Decode(c))
     {
@@ -221,7 +222,6 @@ int sensorParse(char c)
     sensor_packet.payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
     if(ymd_ready == 1 && location_rdy == 1 && alt_rdy == 1 && type_set == 1)
     {
-        uint8_t buffer[256];
         encodeSensorPacket(&sensor_packet, buffer, sizeof(buffer));
         ymd_ready = 0;
         alt_rdy = 0;
