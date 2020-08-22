@@ -65,7 +65,7 @@ int LEDcontrol();
  *
  * @return     returns 0 if successful, otherwise returns 1
  */
-extern int decodeStatusPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len);
+extern int decodeStatusPacket(DataStatusPacket_t* data, uint8_t buf);
 
 /**
  * Parses a sensor packet char by char

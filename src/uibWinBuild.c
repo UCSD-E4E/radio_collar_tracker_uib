@@ -76,8 +76,6 @@ void app()
 {
 	uint8_t rxBuf[64];
 	int nchars;
-	int tmp_count = 0;
-	uint8_t tmp_buf[64];
 	while(1)
 	{
 		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
@@ -93,13 +91,10 @@ void app()
 		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
 		if(nchars > 0)
 		{
-			memcpy(&tmp_buf[tmp_count], &rxBuf, nchars);
-			tmp_count += nchars;
-			if(tmp_count >= 22)
+			DataStatusPacket_t status_data;
+			for(int i = 0; i < nchars; i++)
 			{
-				tmp_count = 0;
-				DataStatusPacket_t status_data;
-				decodeStatusPacket(&status_data, tmp_buf, nchars);
+				decodeStatusPacket(&status_data, rxBuf[i]);
 			}
 		}
 	}

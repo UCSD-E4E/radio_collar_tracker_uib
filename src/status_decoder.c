@@ -77,38 +77,61 @@ uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS] =
  *
  * @return     returns 0 if successful, 1 if otherwise
  */
-int decodeStatusPacket(DataStatusPacket_t* data, uint8_t* buf, uint32_t len)
+int decodeStatusPacket(DataStatusPacket_t* data, uint8_t input_byte)
 {
     uint16_t crc;
-    crc = crc16(buf, 20);
-    uint8_t *crc_ptr = (uint8_t*) &crc;
-    if(crc_ptr[1] == buf[20] && crc_ptr[0] == buf[21])
+    static int count = 0;
+    static uint8_t tmp_buf[64];
+    if(count)
     {
-        if(len < sizeof(DataStatusPacket_t))
+        tmp_buf[count] = input_byte;
+        count++;
+    }
+    else if(input_byte == 0xe4)
+    {
+        tmp_buf[count] = input_byte;
+        count = 1;
+    }
+    if(count == 22)
+    {
+        if(tmp_buf[1] == 0xeb)
         {
-            return 1;
+            crc = crc16(tmp_buf, 20);
+            uint8_t *crc_ptr = (uint8_t*) &crc;
+            if(crc_ptr[1] == tmp_buf[20] && crc_ptr[0] == tmp_buf[21])
+            {
+                data->sync_char1 = tmp_buf[0];
+                data->sync_char2 = tmp_buf[1];
+                data->packet_class = tmp_buf[2];
+                data->packet_id = tmp_buf[3];
+                memcpy((uint8_t*) &data->payload_length, (uint8_t*) &tmp_buf[4], 2);
+                // if(data->packet_class == 4 && data->packet_id == 3)
+                {
+                    data->payload.version = tmp_buf[6];
+                    data->payload.system_state = tmp_buf[7];
+                    LEDsetState(SYSTEM_STATE_LED, ledcontrol_table[SYSTEM_STATE_LED][data->payload.system_state]);
+                    data->payload.sdr_state = tmp_buf[8];
+                    LEDsetState(SDR_STATE_LED, ledcontrol_table[SDR_STATE_LED][data->payload.sdr_state]);
+                    data->payload.ext_sensor_state = tmp_buf[9];
+                    LEDsetState(GPS_STATE_LED, ledcontrol_table[GPS_STATE_LED][data->payload.ext_sensor_state]);
+                    data->payload.storage_state = tmp_buf[10];
+                    LEDsetState(STORAGE_STATE_LED, ledcontrol_table[STORAGE_STATE_LED][data->payload.storage_state]);
+                    data->payload.switch_state = tmp_buf[11];
+                    LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][data->payload.switch_state]);
+                    memcpy((uint8_t*) &data->payload.time, (uint8_t*) &tmp_buf[12], 8);
+                }
+                count = 0;
+                return 0;
+            }
         }
-        data->sync_char1 = buf[0];
-        data->sync_char2 = buf[1];
-        data->packet_class = buf[2];
-        data->packet_id = buf[3];
-        memcpy((uint8_t*) &data->payload_length, (uint8_t*) &buf[4], 2);
-        // if(data->packet_class == 4 && data->packet_id == 3)
+        for(int i = 1; i < 22; i++)
         {
-            data->payload.version = buf[6];
-            data->payload.system_state = buf[7];
-            LEDsetState(SYSTEM_STATE_LED, ledcontrol_table[SYSTEM_STATE_LED][data->payload.system_state]);
-            data->payload.sdr_state = buf[8];
-            LEDsetState(SDR_STATE_LED, ledcontrol_table[SDR_STATE_LED][data->payload.sdr_state]);
-            data->payload.ext_sensor_state = buf[9];
-            LEDsetState(GPS_STATE_LED, ledcontrol_table[GPS_STATE_LED][data->payload.ext_sensor_state]);
-            data->payload.storage_state = buf[10];
-            LEDsetState(STORAGE_STATE_LED, ledcontrol_table[STORAGE_STATE_LED][data->payload.storage_state]);
-            data->payload.switch_state = buf[11];
-            LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][data->payload.switch_state]);
-            memcpy((uint8_t*) &data->payload.time, (uint8_t*) &buf[12], 8);
+            if(tmp_buf[i] == 0xe4)
+            {
+                memcpy(tmp_buf, &tmp_buf[i], 22 - i);
+                count = 22 - i;
+            }
         }
-        return 0;
     }
     return 1;
 }
