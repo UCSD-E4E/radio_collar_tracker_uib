@@ -22,6 +22,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Fixed prototypes
  * 08/16/20  EL  Added documentation
  * 08/14/20  EL  Initial commit
  */
@@ -67,5 +68,10 @@ typedef enum LED_STATE_
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
+int LEDInit();
+int LEDsetState(int index, LED_STATE_e value);
+int LEDcontrol();
+
+
 
 #endif /* __LED_MODULE_H__ */

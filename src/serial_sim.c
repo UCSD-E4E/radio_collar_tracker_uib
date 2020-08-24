@@ -24,6 +24,9 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Moved simulator setup before fifo open, fixed fifo open return
+ *                 value checking, added GPS out receiver, added GPS data over
+ *                 E4EB output to file.
  * 08/09/20  NH  Implemented full simulation setup
  * 08/06/20  NH  Initial commit
  */
@@ -34,10 +37,12 @@
 
 #include "serial_sim.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
@@ -93,8 +98,8 @@ typedef struct __attribute__((packed)) heartbeatTransport_
  ******************************************************************************/
 static SerialSim_Desc_t serialTable[] = 
 {
-	{SerialDevice_GPS, 0, 0, "gps_in", "gps_out", gpsSimulator, 0},
-	{SerialDevice_OBC, 0, 0, "obc_in", "obc_out", obcSimulator, 0},
+	{SerialDevice_GPS, 0, 0, "./gps_in", "./gps_out", gpsSimulator, 0},
+	{SerialDevice_OBC, 0, 0, "./obc_in", "./obc_out", obcSimulator, 0},
 	{SerialDevice_NULL, 0, 0, NULL, NULL, NULL, 0}
 };
 /******************************************************************************
@@ -170,26 +175,29 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
 		}
 	}
 
+	if(pDesc->simulatorThread != NULL)
+	{
+		pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread, NULL);
+	}
 
 
 	pDesc->pIn = open(pDesc->pInPipe, O_RDONLY | O_NONBLOCK | O_CREAT, 0777);
-	if(!pDesc->pIn)
+	if(pDesc->pIn == -1)
 	{
 		printf("Failed to open input pipe\n");
 		return NULL;
 	}
 
-	pDesc->pOut = open(pDesc->pOutPipe, O_WRONLY | O_NONBLOCK | O_CREAT, 0777);
-	if(!pDesc->pOut)
+
+	pDesc->pOut = open(pDesc->pOutPipe, O_WRONLY | O_CREAT, 0777);
+	if(pDesc->pOut == -1)
 	{
 		printf("Failed to open output pipe\n");
+		printf("%s\n", strerror(errno));
+		printf("%s\n", pDesc->pOutPipe);
 		return NULL;
 	}
 
-	if(pDesc->simulatorThread != NULL)
-	{
-		pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread, NULL);
-	}
 
 	return (void*)pDesc;
 }
@@ -265,8 +273,10 @@ void* gpsSimulator(void* argp)
 	size_t bufLen = 0;
 	size_t nChars = 0;
 	struct timespec itv = {1, 0};
+    const char* gpsOutPipeName = "gps_out";
+    int gpsOutPipe = open(gpsOutPipeName, O_RDONLY);
 	const char* gpsPipeName = "gps_in";
-	int gpsPipe = open(gpsPipeName, O_WRONLY | O_NONBLOCK);
+	int gpsPipe = open(gpsPipeName, O_WRONLY);
 	int run = 1;
 
 	if(!gpsData)
@@ -275,7 +285,7 @@ void* gpsSimulator(void* argp)
 		return NULL;
 	}
 
-	if(!gpsPipe)
+	if(gpsPipe == -1)
 	{
 		printf("Failed to open GPS pipe\n");
 		return NULL;
@@ -309,30 +319,37 @@ void* gpsSimulator(void* argp)
 void* obcSimulator(void* argp)
 {
 	uint8_t heartbeatBuffer[25];
+	uint8_t gpsDataBuffer[1024];
 	struct timespec itv = {2, 0};
-	const char* obcInPipeName = "obc_in";
-	int obcInPipe = open(obcInPipeName, O_WRONLY | O_NONBLOCK);
 	const char* obcOutPipeName = "obc_out";
 	int obcOutPipe = open(obcOutPipeName, O_RDONLY | O_NONBLOCK);
+	const char* obcInPipeName = "obc_in";
+	int obcInPipe = open(obcInPipeName, O_WRONLY);
 	int run = 1;
 	int nChars = 0;
+	FILE* gpsFile = fopen("gps.bin", "wb");
 
 	uint8_t sysState = 0, sdrState = 0, sensorState = 0, storageState = 0,
 			switchState = 0;
 	uint8_t sdrMax = 5, sensorMax = 5, storageMax = 6, systemMax = 7,
 			switchMax = 2;
 
-
-	if(!obcInPipe)
+	if(obcInPipe == -1)
 	{
 		printf("Failed to open OBC input pipe\n");
 		return NULL;
 	}
 
-	if(!obcOutPipe)
+	if(obcOutPipe == -1)
 	{
 		printf("Failed to open OBC output pipe\n");
 		return NULL;
+	}
+	if(!gpsFile)
+	{
+	    printf("Failed to open GPS output file\n");
+	    printf("%s\n", strerror(errno));
+	    return NULL;
 	}
 	while(run)
 	{
@@ -341,7 +358,15 @@ void* obcSimulator(void* argp)
 				storageState++ % storageMax, switchState++ % switchMax);
 		if(nChars)
 		{
+		    write(obcInPipe, "\r\n", 2);
 			write(obcInPipe, heartbeatBuffer, nChars);
+		}
+
+		nChars = read(obcOutPipe, gpsDataBuffer, 1024);
+		if(nChars != -1)
+		{
+            fwrite(gpsDataBuffer, nChars, 1, gpsFile);
+            fflush(gpsFile);
 		}
 		nanosleep(&itv, NULL);
 
@@ -363,7 +388,7 @@ void* obcSimulator(void* argp)
 static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 		uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState)
 {
-	int nBytes = sizeof(heartbeatTransport_t);
+	size_t nBytes = sizeof(heartbeatTransport_t);
 	heartbeatTransport_t* pStruct = (heartbeatTransport_t*) pBuf;
 	struct timespec spec;
 	uint16_t cksum;

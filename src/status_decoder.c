@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Fixed decoder, refactored LED encoding into separate function
  * 08/16/20  EL  Renamed functions
  * 08/14/20  EL  Initial Commit
  */
@@ -52,7 +53,13 @@ uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS] =
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-
+typedef enum StatusDecoderState_
+{
+    StatusDecoderState_Sync1,
+    StatusDecoderState_Sync2,
+    StatusDecoderState_Header,
+    StatusDecoderState_Payload,
+}StatusDecoderState_e;
 /******************************************************************************
  * Global Data
  ******************************************************************************/
@@ -79,59 +86,78 @@ uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS] =
  */
 int decodeStatusPacket(DataStatusPacket_t* data, uint8_t input_byte)
 {
-    uint16_t crc;
     static int count = 0;
     static uint8_t tmp_buf[64];
-    if(count)
+    PhysicalPacketHeader_t* header = (PhysicalPacketHeader_t*) tmp_buf;
+
+    static StatusDecoderState_e decoderState = StatusDecoderState_Sync1;
+
+    switch(decoderState)
     {
-        tmp_buf[count] = input_byte;
-        count++;
-    }
-    else if(input_byte == 0xe4)
-    {
-        tmp_buf[count] = input_byte;
-        count = 1;
-    }
-    if(count == 22)
-    {
-        if(tmp_buf[1] == 0xeb)
+    case StatusDecoderState_Sync1:
+        if(input_byte == 0xE4)
         {
-            crc = crc16(tmp_buf, 20);
-            uint8_t *crc_ptr = (uint8_t*) &crc;
-            if(crc_ptr[1] == tmp_buf[20] && crc_ptr[0] == tmp_buf[21])
+            count = 0;
+            tmp_buf[count] = input_byte;
+            count++;
+            decoderState++;
+        }
+        break;
+    case StatusDecoderState_Sync2:
+        if(input_byte == 0xEB)
+        {
+            tmp_buf[count++] = input_byte;
+            decoderState++;
+        }
+        else
+        {
+            decoderState = StatusDecoderState_Sync1;
+        }
+        break;
+    case StatusDecoderState_Header:
+        tmp_buf[count++] = input_byte;
+
+        if(count == 7)
+        {
+            // header read in
+            if(header->class == 1 && header->id == 1)
             {
-                data->sync_char1 = tmp_buf[0];
-                data->sync_char2 = tmp_buf[1];
-                data->packet_class = tmp_buf[2];
-                data->packet_id = tmp_buf[3];
-                memcpy((uint8_t*) &data->payload_length, (uint8_t*) &tmp_buf[4], 2);
-                // if(data->packet_class == 4 && data->packet_id == 3)
-                {
-                    data->payload.version = tmp_buf[6];
-                    data->payload.system_state = tmp_buf[7];
-                    LEDsetState(SYSTEM_STATE_LED, ledcontrol_table[SYSTEM_STATE_LED][data->payload.system_state]);
-                    data->payload.sdr_state = tmp_buf[8];
-                    LEDsetState(SDR_STATE_LED, ledcontrol_table[SDR_STATE_LED][data->payload.sdr_state]);
-                    data->payload.ext_sensor_state = tmp_buf[9];
-                    LEDsetState(GPS_STATE_LED, ledcontrol_table[GPS_STATE_LED][data->payload.ext_sensor_state]);
-                    data->payload.storage_state = tmp_buf[10];
-                    LEDsetState(STORAGE_STATE_LED, ledcontrol_table[STORAGE_STATE_LED][data->payload.storage_state]);
-                    data->payload.switch_state = tmp_buf[11];
-                    LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][data->payload.switch_state]);
-                    memcpy((uint8_t*) &data->payload.time, (uint8_t*) &tmp_buf[12], 8);
-                }
-                count = 0;
-                return 0;
+                // heartbeat packet
+                decoderState++;
+            }
+            else
+            {
+                decoderState = StatusDecoderState_Sync1;
             }
         }
-        for(int i = 1; i < 22; i++)
+        break;
+    case StatusDecoderState_Payload:
+        tmp_buf[count++] = input_byte;
+
+        if(count == header->len + 8)
         {
-            if(tmp_buf[i] == 0xe4)
+            // packet received
+            if(crc16(tmp_buf, header->len + 8) == 0)
             {
-                memcpy(tmp_buf, &tmp_buf[i], 22 - i);
-                count = 22 - i;
+                memcpy(data, tmp_buf, sizeof(DataStatusPacket_t));
+                decoderState = StatusDecoderState_Sync1;
+                return 1;
             }
         }
+        break;
     }
-    return 1;
+    return 0;
+}
+
+/**
+ * Encodes the LED states based on the heartbeat information provided.
+ * @param pHeartbeat    Heartbeat information
+ */
+void StatusDecoder_encodeLEDs(DataStatusInput_t* pHeartbeat)
+{
+    LEDsetState(SYSTEM_STATE_LED, ledcontrol_table[SYSTEM_STATE_LED][pHeartbeat->system_state]);
+    LEDsetState(SDR_STATE_LED, ledcontrol_table[SDR_STATE_LED][pHeartbeat->sdr_state]);
+    LEDsetState(GPS_STATE_LED, ledcontrol_table[GPS_STATE_LED][pHeartbeat->ext_sensor_state]);
+    LEDsetState(STORAGE_STATE_LED, ledcontrol_table[STORAGE_STATE_LED][pHeartbeat->storage_state]);
+    LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][pHeartbeat->switch_state]);
 }

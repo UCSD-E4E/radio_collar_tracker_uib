@@ -24,6 +24,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Removed external prototypes
  * 08/13/20  EL  Tied the LED module, encoder, and decoder together
  * 08/09/20  NH  Added boilerplate code
  * 08/07/20  NH  Added serial and hardware initialization
@@ -42,39 +43,7 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-/**
- * Initializes the LED
- *
- * @return     returns 1
- */
-int LEDInit();
 
-/**
- * Switches the LEDs to turn on or off or blink.
- *
- * @return     returns 0
- */
-int LEDcontrol();
-
-/**
- * Decodes the status packet in data and puts it into a buffer buf of length len
- *
- * @param      data  The data to be decoded
- * @param      buf   The buffer for the decoded data
- * @param[in]  len   The length of the buffer
- *
- * @return     returns 0 if successful, otherwise returns 1
- */
-extern int decodeStatusPacket(DataStatusPacket_t* data, uint8_t buf);
-
-/**
- * Parses a sensor packet char by char
- *
- * @param[in]  c     the sensor packet in characters
- *
- * @return     returns PARSE_COMPLETE if successful, PARSE_NOT_COMPLETE otherwise
- */
-int sensorParse(char c);
 /******************************************************************************
  * Typedefs
  ******************************************************************************/

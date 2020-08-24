@@ -22,6 +22,8 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Added Physical Packet header struct, removed unused
+ *                 declaration, added prototypes
  * 08/16/20  EL  Added documentation
  * 08/14/20  EL  Initial commit
  */
@@ -70,6 +72,15 @@ typedef struct DataStatusPacket_
     DataStatusInput_t payload;
 } __attribute__((packed)) DataStatusPacket_t;
 
+typedef struct PhysicalPacketHeader_
+{
+    uint8_t sync_1;
+    uint8_t sync_2;
+    uint8_t class;
+    uint8_t id;
+    uint16_t len;
+}__attribute__((packed)) PhysicalPacketHeader_t;
+
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
@@ -84,19 +95,19 @@ typedef struct DataStatusPacket_
 uint16_t crc16(uint8_t *buffer, uint32_t len);
 
 /**
- * The table of possible LED states.
- */
-uint8_t ledcontrol_table[LED_MAPPING_END][MAX_STATUS];
-
-/**
- * Sets an LED at index to the action corresponding to value.
+ * Decodes a sensor packet received from the On Board Computer
  *
- * @param[in]  index  The index of the LED wanting to be set
- * @param[in]  value  The value which corresponds to one of four options:
- *                    on, off, blink 1hz, blink 5hz.
+ * @param      data  The packet received
+ * @param      buf   The buffer to put the packet data into
+ * @param[in]  len   The length of the buffer
  *
  * @return     returns 0 if successful, 1 if otherwise
  */
-int LEDsetState(int index, int value);
+int decodeStatusPacket(DataStatusPacket_t* data, uint8_t input_byte);
 
+/**
+ * Encodes the LED states based on the heartbeat information provided.
+ * @param pHeartbeat    Heartbeat information
+ */
+void StatusDecoder_encodeLEDs(DataStatusInput_t* pHeartbeat);
 #endif /* __STATUS_DECODER_H__ */

@@ -22,6 +22,8 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Removed return types enum, removed extern from other module,
+ *                 added symbol declarations
  * 08/16/20  EL  Added documentation
  * 08/14/20  EL  Initial commit
  */
@@ -39,19 +41,6 @@
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-/**
- * return types
- */
-typedef enum sensor_status_
-{
-    PARSE_COMPLETE,
-    PARSE_NOT_COMPLETE
-} sensor_status_e;
-
-/**
- * The GPS data to encode
- */
-extern NMEA_Data_u NMEA_Data;
 
 /******************************************************************************
  * Symbol Prototypes
@@ -65,5 +54,19 @@ uint32_t encodeSensorPacket(DataSensorPacket_t* data, uint8_t* buf, uint32_t len
  * Decodes an NMEA GPS message
  */
 NMEA_Message_e NMEA_Decode(char c);
+
+/**
+ * Parses a sensor packet char by char
+ *
+ * @param[in]  c     the sensor packet in characters
+ *
+ * @return     returns PARSE_COMPLETE if successful, PARSE_NOT_COMPLETE otherwise
+ */
+int sensorParse(char c);
+
+/**
+ * The decoded sensor packet data.
+ */
+extern DataSensorPacket_t sensor_packet;
 
 #endif /* __SENSOR_MODULE_H__ */

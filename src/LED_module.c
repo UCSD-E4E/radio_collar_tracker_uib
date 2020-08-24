@@ -23,6 +23,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Fixed LED State types, reorganized includes
  * 08/16/20  EL  Added documentation
  * 08/14/20  EL  Initial Commit
  */
@@ -30,9 +31,10 @@
 /******************************************************************************
  * Includes
  ******************************************************************************/
-#include <stdio.h>
-#include <stdint.h>
+
 #include "LED_module.h"
+
+#include <stdint.h>
 
 /******************************************************************************
  * Defines
@@ -49,7 +51,7 @@
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-static uint8_t led_state[5] = {0, 0, 0, 0, 0};
+static LED_STATE_e led_state[5] = {0, 0, 0, 0, 0};
 static uint8_t led_buf;
 /******************************************************************************
  * Local Function Prototypes
@@ -83,7 +85,7 @@ int LEDInit()
  *
  * @return     0 if successful, otherwise 1
  */
-int LEDsetState(int index, int value)
+int LEDsetState(int index, LED_STATE_e value)
 {
     if(index > 4)
     {
@@ -105,7 +107,7 @@ int LEDcontrol()
     static int count[LED_MAPPING_END] = {0, 0, 0, 0, 0};
     for(int i = 0; i < LED_MAPPING_END; i++)
     {
-        uint8_t value = led_state[i];
+    	LED_STATE_e value = led_state[i];
         if(value == LED_ON)
         {
             led_buf |= (1 << i); // turns LED on
@@ -143,6 +145,5 @@ int LEDcontrol()
             count[i] = 0;
         }
     }
-
     return 0;
 }

@@ -23,6 +23,8 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Fixed sensorParse return types, fixed compass and voltage read
+ *                 timings
  * 08/16/20  EL  Fixed voltage/compass
  * 08/14/20  EL  Initial Commit
  */
@@ -133,7 +135,7 @@ void setPacket(DataSensorPacket_t *packet)
  *
  * @param[in]  c     The data from the GPS port, char by char
  *
- * @return     returns PARSE_COMPLETE if successful, PARSE_NOT_COMPLETE if not
+ * @return     returns 1 if successful, 0 if not
  */
 int sensorParse(char c)
 {
@@ -218,16 +220,16 @@ int sensorParse(char c)
         default:
             break;
     }
-    sensor_packet.payload.heading = readCompass(); //the number in dataStore.bin (pValue);
-    sensor_packet.payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
     if(ymd_ready == 1 && location_rdy == 1 && alt_rdy == 1 && type_set == 1)
     {
+        sensor_packet.payload.heading = readCompass(); //the number in dataStore.bin (pValue);
+        sensor_packet.payload.voltage = readVoltage(); //the number in voltageSim.bin (pValue);
         encodeSensorPacket(&sensor_packet, buffer, sizeof(buffer));
         ymd_ready = 0;
         alt_rdy = 0;
         location_rdy = 0;
         type_set = 0;
-        return PARSE_COMPLETE;
+        return 1;
     }
-    return PARSE_NOT_COMPLETE;
+    return 0;
 }

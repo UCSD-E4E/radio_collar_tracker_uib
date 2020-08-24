@@ -24,6 +24,8 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Removed externs, added NMEA and sim setup, fixed output and
+ *                 action sequences, fixed compass init
  * 08/13/20  EL  Tied the LED module, encoder, and decoder together
  * 08/09/20  NH  Added boilerplate code
  * 08/07/20  NH  Added serial and hardware initialization
@@ -39,7 +41,12 @@
 #include "serial_sim.h"
 #include "voltage_sim.h"
 #include <pthread.h>
+#include <stdio.h>
 #include <time.h>
+#include <unistd.h>
+
+#include "sensor_module.h"
+#include "status_decoder.h"
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -56,7 +63,6 @@ typedef struct globalParams_
  * Global Data
  ******************************************************************************/
 globalParams_t globals;
-extern DataSensorPacket_t sensor_packet;
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
@@ -69,6 +75,8 @@ static int initSerial();
 static int initVoltage();
 static int initCompass();
 static int initTimer();
+static int initNMEA();
+static void sim_setup();
 
 static void* timerThread(void*);
 
@@ -76,25 +84,31 @@ void app()
 {
 	uint8_t rxBuf[64];
 	int nchars;
-	while(1)
+    DataStatusPacket_t status_data;
+
+    while(1)
 	{
 		nchars = Serial_Read(globals.pGPS, rxBuf, 63);
 		if(nchars > 0)
 		{
 			for(int i = 0; i < nchars; i++)
 			{
-				sensorParse(rxBuf[i]);
+				if(sensorParse(rxBuf[i]) == 1)
+				{
+				    Serial_Write(globals.pOBC, (uint8_t *) &sensor_packet, sizeof(sensor_packet));
+				}
 			}
-			Serial_Write(globals.pOBC, (uint8_t *) &sensor_packet, sizeof(sensor_packet));
 		}
 
 		nchars = Serial_Read(globals.pOBC, rxBuf, 63);
 		if(nchars > 0)
 		{
-			DataStatusPacket_t status_data;
 			for(int i = 0; i < nchars; i++)
 			{
-				decodeStatusPacket(&status_data, rxBuf[i]);
+				if(decodeStatusPacket(&status_data, rxBuf[i]))
+				{
+				    StatusDecoder_encodeLEDs(&status_data.payload);
+				}
 			}
 		}
 	}
@@ -115,6 +129,7 @@ void timer1_IRQ()
  */
 int main(int argc, char const *argv[])
 {
+    sim_setup();
 	if(!init())
 	{
 		printf("Init failed\n");
@@ -134,6 +149,7 @@ static int init()
 {
 	if(!initSerial())
 	{
+	    printf("Serial init failed\n");
 		return 0;
 	}
 
@@ -157,6 +173,11 @@ static int init()
 		return 0;
 	}
 
+	if(!initNMEA())
+	{
+	    return 0;
+	}
+
 	return 1;
 }
 
@@ -173,6 +194,7 @@ static int initSerial()
 	globals.pGPS = Serial_Init(&serialConfig);
 	if(!globals.pGPS)
 	{
+	    printf("GPS init failed\n");
 		return 0;
 	}
 
@@ -180,6 +202,7 @@ static int initSerial()
 	globals.pOBC = Serial_Init(&serialConfig);
 	if(!globals.pOBC)
 	{
+	    printf("OBC init failed\n");
 		return 0;
 	}
 
@@ -208,13 +231,21 @@ static int initVoltage()
  */
 static int initCompass()
 {
-	Compass_Sim_Config_t config;
-	config.path = "compassSim";
+	Compass_Sim_Config_t simConfig;
+	Compass_Config_t cConfig;
+	simConfig.path = "compassSim";
+	cConfig.measMode = Compass_Mode_Continuous;
 
-	if(!Compass_Sim_Init(&config))
+	if(!Compass_Sim_Init(&simConfig))
 	{
 		return 0;
 	}
+
+	if(!Compass_Init(&cConfig))
+	{
+	    return 0;
+	}
+
 	return 1;
 }
 
@@ -243,4 +274,41 @@ static void* timerThread(void* argp)
 		timer1_IRQ();
 	}
 	return NULL;
+}
+
+/**
+ * Initializes the NMEA module
+ * @return
+ */
+static int initNMEA()
+{
+    NMEA_Config_t config;
+
+    config.messageMask = NMEA_MESSAGE_GGA | NMEA_MESSAGE_GLL | NMEA_MESSAGE_ZDA;
+    NMEA_Init(&config);
+
+    return 1;
+}
+
+/**
+ * Initializes the environment for the simulation
+ */
+static void sim_setup()
+{
+    if(access("gps_in", F_OK) != 1)
+    {
+        remove("gps_in");
+    }
+    if(access("gps_out", F_OK) != 1)
+    {
+        remove("gps_out");
+    }
+    if(access("obc_in", F_OK) != 1)
+    {
+        remove("obc_in");
+    }
+    if(access("obc_out", F_OK) != 1)
+    {
+        remove("obc_out");
+    }
 }

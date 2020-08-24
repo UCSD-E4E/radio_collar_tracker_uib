@@ -31,6 +31,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Reorganized includes, fixed initial range, removed FIXME
  * 07/05/20  EL  Compltered compass functions
  * 07/02/20  NH  Fixed value type
  * 07/01/20  NH  Initial commit
@@ -39,6 +40,7 @@
  * Includes
  ******************************************************************************/
 #include "compass_sim.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -115,7 +117,7 @@ int Compass_Init(Compass_Config_t* pConfig)
     {
         if(fread(&buffer, 2, 1, compassDesc.pFile) == 1)
         {
-            if(buffer <= 180 && buffer >= -180)
+            if(buffer <= 180 && buffer > -180)
             {
                 return 1;
             }
@@ -147,7 +149,6 @@ int Compass_Read(int16_t *pValue)
      * return 0 if the Compass_Init function has not yet been called.
      */
     
-    // FIXME
     if(compassDesc.pFile == NULL)
     {
         return 0;
