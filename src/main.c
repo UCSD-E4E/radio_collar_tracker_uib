@@ -1,17 +1,49 @@
+/**
+ * @file main.h
+ *
+ * @author Eugene Lee
+ *
+ * @description
+ * Simulates the UI Board inputs and outputs using files.
+ * 
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * DATE      WHO DESCRIPTION
+ * ----------------------------------------------------------------------------
+ * 08/13/20  EL  Added LED functions
+ */
+
 /******************************************************************************
  * Includes
  ******************************************************************************/
 #include "compass_sim.h"
 #include "nmea.h"
 #include "voltage_sim.h"
+#include "sensor_module.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 /******************************************************************************
  * Defines
  ******************************************************************************/
-
+extern uint32_t sensorParse(char c);
+extern void LEDInit();
+extern int LEDcontrol();
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -35,92 +67,54 @@ static int testVoltage(void);
 int main(int argc, char const *argv[])
 {
     NMEA_Config_t nmeaConfig;
-    size_t i;
 
     nmeaConfig.messageMask = 0xFFFFFFFF;
 
     NMEA_Init(&nmeaConfig);
 
-    //const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+    // const char* nmeaString = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
     //const char* nmeaString = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D";
-    const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
+    //const char* nmeaString = "$GPZDA,201530.00,04,07,2002,00,00*60";
     /*format: $--GGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*/
 
-    for(i = 0; i < strlen(nmeaString); i++)
+    LEDInit();
+
+    while(1)
     {
-        switch(NMEA_Decode(nmeaString[i]))
+        LEDcontrol();
+            
+        FILE* nmeaFP;
+        char c;
+
+        nmeaFP = fopen("gps.txt", "r");
+        if(nmeaFP == NULL)
         {
-            case NMEA_MESSAGE_NONE:
-                {
-                    continue;
-                }
-            case NMEA_MESSAGE_GGA:
-                {
-                    printf("talkerID = %c\n", NMEA_Data.GGA.talkerID);
-                    printf("fixHour = %d\n", NMEA_Data.GGA.fixTime[0]);
-                    printf("fixMinute = %d\n", NMEA_Data.GGA.fixTime[1]);
-                    printf("fixSecond = %d\n", NMEA_Data.GGA.fixTime[2]);
-                    printf("latitude = %f\n", NMEA_Data.GGA.latitude);
-                    printf("longitude = %f\n", NMEA_Data.GGA.longitude);
-                    printf("fixQuality = %d\n", NMEA_Data.GGA.fixQuality);
-                    printf("nSatellites = %d\n", NMEA_Data.GGA.nSatellites);
-                    printf("hdop = %f\n", NMEA_Data.GGA.hdop);
-                    printf("altitude = %f\n", NMEA_Data.GGA.altitude);
-                    printf("elevation = %f\n", NMEA_Data.GGA.elevation);
-                    printf("dGpsStale = %d\n", NMEA_Data.GGA.dGpsStale);
-                    printf("dGpsID = %d\n", NMEA_Data.GGA.dGpsID);
-                }
-                break;
-            case NMEA_MESSAGE_GLL:
-                {
-                    printf("talkerID = %c\n", NMEA_Data.GLL.talkerID);
-                    printf("latitude = %f\n", NMEA_Data.GLL.latitude);
-                    printf("longitude = %f\n", NMEA_Data.GLL.longitude);
-                    printf("fixHour = %d\n", NMEA_Data.GLL.fixTime[0]);
-                    printf("fixMinute = %d\n", NMEA_Data.GLL.fixTime[1]);
-                    printf("fixSecond = %d\n", NMEA_Data.GLL.fixTime[2]);
-                    printf("fixType = %c\n", NMEA_Data.GLL.fixType);
-                }
-                break;
-            case NMEA_MESSAGE_ZDA:
-                {
-                    printf("talkerID = %c\n", NMEA_Data.ZDA.talkerID);
-                    printf("fixHour = %d\n", NMEA_Data.ZDA.fixTime[0]);
-                    printf("fixMinute = %d\n", NMEA_Data.ZDA.fixTime[1]);
-                    printf("fixSecond = %d\n", NMEA_Data.ZDA.fixTime[2]);
-                    printf("day = %d\n", NMEA_Data.ZDA.day);
-                    printf("month = %d\n", NMEA_Data.ZDA.month);
-                    printf("year = %d\n", NMEA_Data.ZDA.year);
-                    printf("Zone Hours = %d\n", NMEA_Data.ZDA.zoneHours);
-                    printf("Zone Minutes = %d\n", NMEA_Data.ZDA.zoneMinutes);
-                }
-                break;
-            case NMEA_MESSAGE_ERROR:
-                {
-                    printf("error\n");
-                    return 1;
-                }
-            default:
-                break;
+            printf("gps.txt does not exist\n");
+            return -1;
         }
-    }
+        while((c = getc(nmeaFP)) != EOF)
+        {
+            sensorParse(c);
+        }
+        fclose(nmeaFP);
 
-    if(!testCompass())
-    {
-        printf("testCompass failed\n");
-    }
-    else
-    {
-        printf("testCompass passed\n");
-    }
+        if(!testCompass())
+        {
+            printf("testCompass failed\n");
+        }
+        else
+        {
+            printf("testCompass passed\n");
+        }
 
-    if(!testVoltage())
-    {
-        printf("testVoltage failed\n");
-    }
-    else
-    {
-        printf("testVoltage passed\n");
+        if(!testVoltage())
+        {
+            printf("testVoltage failed\n");
+        }
+        else
+        {
+            printf("testVoltage passed\n");
+        }
     }
     return 0;
 }

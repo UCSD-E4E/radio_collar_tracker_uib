@@ -1,0 +1,11 @@
+UI Board Files:
+nmea.c - determines what type of GPS message was received and fills a buffer with the GPS data.
+LED_module.c - initializes and converts the data values into LED states that the 5 LEDs use to show the data in the status packets.
+sensor_encoder.c - calls for the encoder after checking for the correct crc value.
+sensor_module.c - encodes the sensor packets.
+serial_sim.c - simulates the GPS and OBC serial ports inputs.
+status_decoder.c - decodes the status packets received from the On Board Computer and sets LEDs appropriately.
+uibWinBuild.c - simulates the UI Board inputs and outputs without the actual hardware for testing.
+voltage_sim.c - simulates the voltage reading through a file.
+compass_sim.c - simulates the compass reading through a file.
+main.c - used to test the GPS data decoder through a file.
