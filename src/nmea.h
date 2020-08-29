@@ -22,6 +22,10 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 08/23/20  NH  Moved state enum to module, removed unused field type enums,
+ *                 added field altitude/elevation units to GGA, moved function
+ *                 pointer type to module.
+ * 08/16/20  EL  Fixed documentation
  * 06/12/20  NH  Initial commit
  */
 #ifndef __NMEA_H__
@@ -53,69 +57,6 @@ typedef enum NMEA_Message_
                                          corrupted or invalid */
 }NMEA_Message_e;
 
-/**
- * State of decoder.
- */
-typedef enum state_
-{
-    START,
-    DATA_ID,
-    TALKER_ID,
-    MESSAGE_TYPE,
-    FIELDS,
-    CHECKSUM
-} state_e;
-
-/**
- * list of fields for GGA
- */
-typedef enum GGA_field_type_
-{
-    FIELD_TALKER_ID = 0,
-    FIELD_GGA_TIME,
-    FIELD_GGA_LAT,
-    FIELD_GGA_LAT_DIR,
-    FIELD_GGA_LONGITUDE,
-    FIELD_GGA_LONGITUDE_DIR,
-    FIELD_GGA_QUALITY,
-    FIELD_GGA_SATELLITES,
-    FIELD_GGA_HDOP,
-    FIELD_GGA_ALTITUDE,
-    FIELD_GGA_ALTITUDE_UNIT,
-    FIELD_GGA_ELEVATION,
-    FIELD_GGA_ELEVATION_UNIT,
-    FIELD_GGA_DGPSSTALE,
-    FIELD_GGA_DGPSID,
-    FIELD_GGA_END
-} GGA_field_type_e;
-
-/**
- * list of fields for GLL
- */
-typedef enum GLL_field_type_
-{
-    FIELD_GLL_LAT = 1,
-    FIELD_GLL_LAT_DIR,
-    FIELD_GLL_LONGITUDE,
-    FIELD_GLL_LONGITUDE_DIR,
-    FIELD_GLL_TIME,
-    FIELD_GLL_FIXTYPE,
-    FIELD_GLL_END
-} GLL_field_type_e;
-
-/**
- * list of fields for ZDA
- */
-typedef enum ZDA_field_type_
-{
-    FIELD_ZDA_TIME = 1,
-    FIELD_ZDA_DAY,
-    FIELD_ZDA_MONTH,
-    FIELD_ZDA_YEAR,
-    FIELD_ZDA_ZHOURS,
-    FIELD_ZDA_ZMINUTES,
-    FIELD_ZDA_END
-} ZDA_field_type_e;
 /**
  * NMEA Configuration Structure
  */
@@ -149,8 +90,10 @@ typedef struct NMEA_GGA_
                                  above example, 0.9 */
     float altitude;         /*!< Receiver altitude.  For the above example, 
                                  545.4 meters */
+    char altitudeUnit;      //!< Altitude units
     float elevation;        /*!< Geoid elevation.  For the above example, 46.9 
                                  meters */
+    char elevationUnit;     //!< Elevation units
     uint8_t dGpsStale;      /*!< Seconds since last DGPS Update.  For the above
                                  example, 0xFF */
     uint8_t dGpsID;         //!< DGPS ID.  For the above example, 0xFF
@@ -192,19 +135,18 @@ typedef struct NMEA_ZDA_
     uint8_t zoneMinutes;    //!< Local Zone Minutes. For the above example, 0xFF
 }NMEA_ZDA_t;
 
-typedef struct NMEA_Function_Ptr_
-{
-    void (*field_func_ptr)(char *, void *);
-    void *arg0;
-    int next_field;
-} NMEA_Function_Ptr_t;
-
+/**
+ * Puts the different types of GPS messages into a union
+ */
 typedef union NMEA_Data_{
     NMEA_GGA_t GGA;
     NMEA_GLL_t GLL;
     NMEA_ZDA_t ZDA;
 }NMEA_Data_u;
 
+/**
+ * Creates the union
+ */
 extern NMEA_Data_u NMEA_Data;
 
 /******************************************************************************

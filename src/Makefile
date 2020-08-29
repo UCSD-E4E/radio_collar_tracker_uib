@@ -22,6 +22,7 @@
 # 
 # DATE      WHO DESCRIPTION
 # -----------------------------------------------------------------------------
+# 08/23/20  NH  Added additional warnings, removed main target
 # 08/09/20  NH  Added all, fixed simulation build objects
 # 08/07/20  NH  Added UIB simulation build
 # 07/02/20  NH  Rename to Makefile, added dependency checking
@@ -30,11 +31,13 @@
 ################################################################################
 
 CC=gcc
-SRCS = main.c nmea.c voltage_sim.c compass_sim.c uibWinBuild.c serial_sim.c
-CFLAGS = -std=gnu11 -c -g -Wall
+SRCS = main.c nmea.c voltage_sim.c compass_sim.c sensor_encoder.c status_decoder.c sensor_module.c LED_module.c uibWinBuild.c serial_sim.c
+CFLAGS = -std=gnu11 -c -g -Wall -Wextra -Wabi -Wformat -Wformat-nonliteral -Wformat-signedness
 LDLIBS = -lpthread
 
 SIM_OBJS = compass_sim.o voltage_sim.o serial_sim.o
+
+TEST_OBJS = sensor_encoder.o status_decoder.o sensor_module.o LED_module.o
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -44,18 +47,16 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 .PHONY: clean all
 
-all: uibWinBuild main
+all: uibWinBuild
 
-uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS)
-
-main: main.o nmea.o $(SIM_OBJS)
+uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 
 %.o : %.c
 %.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 clean:
-	-rm *.o main
+	-rm *.o uibWinBuild
 
 $(DEPDIR): ; @mkdir -p $@
 

@@ -31,6 +31,7 @@
  *
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
+ * 07/08/20  EL  Completed Voltage Functions
  * 07/02/20  NH  Initial commit
  */
 /******************************************************************************
@@ -38,6 +39,8 @@
  ******************************************************************************/
 #include "voltage_sim.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -97,7 +100,27 @@ int Voltage_Init(void)
      * not populated, the file should be populated with random values.
      */
     
-    // FIXME
+    int16_t random_num;
+    int16_t buffer;
+
+    voltageDesc.pFile = fopen(voltageDesc.path, "rb");
+    if(voltageDesc.pFile != NULL)
+    {
+        if(fread(&buffer, 2, 1, voltageDesc.pFile) == 1)
+        {
+            if(buffer <= 5000 && buffer >= 0)
+            {
+                return 1;
+            }
+        }
+        rewind(voltageDesc.pFile);
+    }
+    if(voltageDesc.pFile == NULL)
+    {
+        voltageDesc.pFile = fopen(voltageDesc.path, "w+b");
+    }
+    random_num = rand() % 5000;
+    fwrite(&random_num, 2, 1, voltageDesc.pFile);
     return 1;
 }
 
@@ -115,8 +138,16 @@ int Voltage_Read(uint16_t *pValue)
      * return 0 if the Voltage_Init function has not yet been called.
      */
     
-    // FIXME
-    return 1;
+    if(voltageDesc.pFile == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        rewind(voltageDesc.pFile);
+        fread(pValue, 2, 1, voltageDesc.pFile);
+        return 1;
+    }
 }
 
 /**
@@ -131,8 +162,15 @@ int Voltage_Sim_Init(Voltage_Sim_Config_t* pConfig)
      * in pConfig
      */
     
-    // FIXME
-    return 1;
+    if(pConfig->path == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        voltageDesc.path = (char *)pConfig->path;
+        return 1;
+    }
 }
 
 /**
@@ -145,6 +183,8 @@ void Voltage_Sim_Deinit(void)
      * voltageDesc.
      */
     
-    // FIXME
+    fclose(voltageDesc.pFile);
+    voltageDesc.pFile = NULL;
+    voltageDesc.path = NULL;
     return;
 }
