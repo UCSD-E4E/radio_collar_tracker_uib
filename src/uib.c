@@ -10,7 +10,9 @@
 #include <util/delay.h>
 #include "cutils.h"
 #include "LED_module.h"
+#include "sensor_module.h"
 #include "serial.h"
+#include "status_decoder.h"
 
 #define OBC_BUFFER_LEN  256
 
@@ -27,10 +29,43 @@ static int initSerial(void);
 static int initUSBSerial(void);
 static int initHWSerial(void);
 
+void appMain(void)
+{
+    uint8_t rxBuf[64];
+    int nchars;
+    DataStatusPacket_t status_data;
+
+    while(1)
+    {
+        nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
+        if(nchars > 0)
+        {
+            for(int i = 0; i < nchars; i++)
+            {
+                if(sensorParse(rxBuf[i]) == 1)
+                {
+                    Serial_Write(HAL_SystemDesc.pOBC, (uint8_t*) &sensor_packet,
+                        sizeof(sensor_packet));
+                }
+            }
+        }
+
+        nchars = Serial_Read(HAL_SystemDesc.pOBC, rxBuf, 63);
+        if(nchars > 0)
+        {
+            for(int i = 0; i < nchars; i++)
+            {
+                if(decodeStatusPacket(&status_data, rxBuf[i]))
+                {
+                    StatusDecoder_encodeLEDs(&status_data.payload);
+                }
+            }
+        }
+    }
+}
+
 int main()
 {
-    uint8_t pOBCBuf[OBC_BUFFER_LEN];
-    uint32_t OBCBufIdx = 0;
     if(!initHW())
     {
         LED_setState(LED_STORAGE_STATE, LED_1HZ);
@@ -39,11 +74,7 @@ int main()
     }
 
     LED_setState(LED_COMBINED_STATE, LED_1HZ);
-    while(1)
-    {
-        OBCBufIdx = Serial_Read(pHalSystem->pGPS, pOBCBuf, OBC_BUFFER_LEN);
-        Serial_Write(pHalSystem->pOBC, pOBCBuf, OBCBufIdx);
-    }
+    appMain();
 }
 
 static int initHW(void)

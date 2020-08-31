@@ -86,7 +86,7 @@ typedef enum StatusDecoderState_
  */
 int decodeStatusPacket(DataStatusPacket_t* data, uint8_t input_byte)
 {
-    static int count = 0;
+    static size_t count = 0;
     static uint8_t tmp_buf[64];
     PhysicalPacketHeader_t* header = (PhysicalPacketHeader_t*) tmp_buf;
 

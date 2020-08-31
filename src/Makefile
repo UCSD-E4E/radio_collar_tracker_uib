@@ -37,7 +37,8 @@ CFLAGS = -std=gnu11 -c -g -Wall -Wextra -ffunction-sections -fdata-sections $(MA
 LDFLAGS = -Os -Wl,--gc-sections -mmcu=$(DEVICE) -lm
 LDLIBS = -lm
 
-SRCS = uib.c LED_module.c CDC.c cutils.c serial.c USBCore.c
+SRCS = uib.c LED_module.c CDC.c cutils.c serial.c USBCore.c sensor_module.c \
+	status_decoder.c sensor_encoder.c nmea.c compass.c voltage.c
 COBJS = $(SRCS:%.c=%.o)
 
 DEPDIR := .deps
