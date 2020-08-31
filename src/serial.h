@@ -62,6 +62,7 @@ typedef enum SerialDevice_
 typedef struct SerialConfig_
 {
 	SerialDevice_e device;
+	uint16_t baudrate;
 }SerialConfig_t;
 /******************************************************************************
  * Symbol Prototypes

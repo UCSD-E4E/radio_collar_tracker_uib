@@ -32,9 +32,17 @@
  * Includes
  ******************************************************************************/
 
+#include "product.h"
 #include "LED_module.h"
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <util/delay.h>
+
+#include "cutils.h"
+#ifdef E4E_RTT_UIBv2
+#include <avr/io.h>
+#endif
 
 /******************************************************************************
  * Defines
@@ -43,7 +51,13 @@
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
-
+typedef struct LED_Map_
+{
+    LED_MAPPING_e LED;
+    volatile uint8_t *port;
+    volatile uint8_t *dir;
+    uint8_t bit;
+} LED_Map_t;
 /******************************************************************************
  * Global Data
  ******************************************************************************/
@@ -51,8 +65,25 @@
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-static LED_STATE_e led_state[5] = {0, 0, 0, 0, 0};
+static LED_STATE_e led_state[5] =
+{0, 0, 0, 0, 0};
+static int LED_counter[LED_MAPPING_END] =
+{0, 0, 0, 0, 0};
+
+#ifdef E4E_RTT_SIM
 static uint8_t led_buf;
+#endif
+
+#ifdef E4E_RTT_UIBv2
+static const LED_Map_t LED_table[] =
+{
+{LED_SYSTEM_STATE, &PORTD, &DDRD, PORTD4},
+{LED_STORAGE_STATE, &PORTD, &DDRD, PORTD6},
+{LED_SDR_STATE, &PORTD, &DDRD, PORTD7},
+{LED_GPS_STATE, &PORTB, &DDRB, PORTB4},
+{LED_COMBINED_STATE, &PORTB, &DDRB, PORTB5},
+{LED_MAPPING_END, NULL, NULL, 0}};
+#endif
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
@@ -67,9 +98,21 @@ static uint8_t led_buf;
  * 
  * @return      1 on success
  */
-int LEDInit()
+int LED_init()
 {
+#ifdef E4E_RTT_SIM
     led_buf = 0;
+#elif defined(E4E_RTT_UIBv2)
+    const LED_Map_t *pEntry = LED_table;
+    while(pEntry->port)
+    {
+        SETBIT(pEntry->bit, *pEntry->dir);
+        SETBIT(pEntry->bit, *pEntry->port);
+        led_state[pEntry->LED] = LED_OFF;
+        _delay_ms(200);
+        pEntry++;
+    }
+#endif
     return 1;
 }
 
@@ -85,9 +128,9 @@ int LEDInit()
  *
  * @return     0 if successful, otherwise 1
  */
-int LEDsetState(int index, LED_STATE_e value)
+int LED_setState(LED_MAPPING_e index, LED_STATE_e value)
 {
-    if(index > 4)
+    if(index > LED_MAPPING_END)
     {
         return 1;
     }
@@ -102,48 +145,74 @@ int LEDsetState(int index, LED_STATE_e value)
  *
  * @return     returns 0
  */
-int LEDcontrol()
+int LED_control()
 {
-    static int count[LED_MAPPING_END] = {0, 0, 0, 0, 0};
-    for(int i = 0; i < LED_MAPPING_END; i++)
+    int i;
+    for(i = 0; i < LED_MAPPING_END; i++)
     {
-    	LED_STATE_e value = led_state[i];
-        if(value == LED_ON)
+        switch(led_state[i])
         {
+        case LED_ON:
+#ifdef E4E_RTT_SIM
             led_buf |= (1 << i); // turns LED on
-            count[i] = 0;
-        }
-        else if(value == LED_1HZ)
-        {
-            if(count[i] <= 5) // if the LED at i is 1
+#elif defined(E4E_RTT_UIBv2)
+            SETBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
+            LED_counter[i] = 0;
+            break;
+        case LED_1HZ:
+            if(LED_counter[i] <= 5) // if the LED at i is 1
             {
+#ifdef E4E_RTT_SIM
                 led_buf &= ~(1 << i); // turn the LED off
+#elif defined(E4E_RTT_UIBv2)
+                CLEARBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
             }
-            else if(count[i] > 5 && count[i] <= 10)
+            else if(LED_counter[i] > 5 && LED_counter[i] <= 10)
             {
+#ifdef E4E_RTT_SIM
                 led_buf |= (1 << i); // turn the LED on
-                count[i] = 0;
+#elif defined(E4E_RTT_UIBv2)
+                SETBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
+                LED_counter[i] = 0;
             }
-            count[i]++;
-        }
-        else if(value == LED_5HZ)
-        {
-            if(count[i] % 2) // if the LED at i is 1
+            LED_counter[i]++;
+            break;
+        case LED_5HZ:
+            if(LED_counter[i] % 2) // if the LED at i is 1
             {
+#ifdef E4E_RTT_SIM
                 led_buf &= ~(1 << i); // turn that LED off
-                count[i] = 0;
+#elif defined(E4E_RTT_UIBv2)
+                CLEARBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
+                LED_counter[i] = 0;
             }
             else // if the LED at i is 0
             {
+#ifdef E4E_RTT_SIM
                 led_buf |= (1 << i); // turn that LED on
-                count[i] = 1;
+#elif defined(E4E_RTT_UIBv2)
+                SETBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
+
+                LED_counter[i] = 1;
             }
-        }
-        else // LED_OFF
-        {
+            break;
+        default:
+        case LED_OFF:
+#ifdef E4E_RTT_SIM
             led_buf &= ~(1 << i); // turns LED off
-            count[i] = 0;
+#elif defined(E4E_RTT_UIBv2)
+            CLEARBIT(LED_table[i].bit, *LED_table[i].port);
+#endif
+            LED_counter[i] = 0;
+            break;
+
         }
+
     }
     return 0;
 }

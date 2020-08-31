@@ -32,8 +32,7 @@
 /******************************************************************************
  * Includes
  ******************************************************************************/
-#include <stdio.h>
-#include <stdint.h>
+
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -46,11 +45,11 @@
  */
 typedef enum LED_MAPPING_
 {
-    SYSTEM_STATE_LED = 0,
-    STORAGE_STATE_LED,
-    SDR_STATE_LED,
-    GPS_STATE_LED,
-    COMBINED_STATE_LED,
+    LED_SYSTEM_STATE = 0,
+    LED_STORAGE_STATE,
+    LED_SDR_STATE,
+    LED_GPS_STATE,
+    LED_COMBINED_STATE,
     LED_MAPPING_END
 } LED_MAPPING_e;
 
@@ -68,9 +67,9 @@ typedef enum LED_STATE_
 /******************************************************************************
  * Symbol Prototypes
  ******************************************************************************/
-int LEDInit();
-int LEDsetState(int index, LED_STATE_e value);
-int LEDcontrol();
+int LED_init();
+int LED_setState(LED_MAPPING_e index, LED_STATE_e value);
+int LED_control();
 
 
 

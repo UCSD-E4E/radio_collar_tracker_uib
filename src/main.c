@@ -43,7 +43,7 @@
  ******************************************************************************/
 extern uint32_t sensorParse(char c);
 extern void LEDInit();
-extern int LEDcontrol();
+extern int LED_control();
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -81,7 +81,7 @@ int main(int argc, char const *argv[])
 
     while(1)
     {
-        LEDcontrol();
+        LED_control();
             
         FILE* nmeaFP;
         char c;
