@@ -41,7 +41,7 @@ int main()
     LED_setState(LED_COMBINED_STATE, LED_1HZ);
     while(1)
     {
-        OBCBufIdx = Serial_Read(pHalSystem->pOBC, pOBCBuf, OBC_BUFFER_LEN);
+        OBCBufIdx = Serial_Read(pHalSystem->pGPS, pOBCBuf, OBC_BUFFER_LEN);
         Serial_Write(pHalSystem->pOBC, pOBCBuf, OBCBufIdx);
     }
 }
@@ -81,10 +81,10 @@ static int initSerial(void)
     {
         return 0;
     }
-//    if(!initHWSerial())
-//    {
-//        return 0;
-//    }
+    if(!initHWSerial())
+    {
+        return 0;
+    }
     return 1;
 }
 

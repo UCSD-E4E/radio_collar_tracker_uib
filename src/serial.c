@@ -193,7 +193,7 @@ static void HWSerial_Init(SerialConfig_t* pConfig)
 {
     cli();
     SETBIT(U2X1, UCSR1A);
-    UBRR1 = 16;
+    UBRR1 = 207;
 
 
     UCSR1B = 0;
