@@ -155,9 +155,9 @@ int decodeStatusPacket(DataStatusPacket_t* data, uint8_t input_byte)
  */
 void StatusDecoder_encodeLEDs(DataStatusInput_t* pHeartbeat)
 {
-    LEDsetState(SYSTEM_STATE_LED, ledcontrol_table[SYSTEM_STATE_LED][pHeartbeat->system_state]);
-    LEDsetState(SDR_STATE_LED, ledcontrol_table[SDR_STATE_LED][pHeartbeat->sdr_state]);
-    LEDsetState(GPS_STATE_LED, ledcontrol_table[GPS_STATE_LED][pHeartbeat->ext_sensor_state]);
-    LEDsetState(STORAGE_STATE_LED, ledcontrol_table[STORAGE_STATE_LED][pHeartbeat->storage_state]);
-    LEDsetState(COMBINED_STATE_LED, ledcontrol_table[COMBINED_STATE_LED][pHeartbeat->switch_state]);
+    LED_setState(LED_SYSTEM_STATE, ledcontrol_table[LED_SYSTEM_STATE][pHeartbeat->system_state]);
+    LED_setState(LED_SDR_STATE, ledcontrol_table[LED_SDR_STATE][pHeartbeat->sdr_state]);
+    LED_setState(LED_GPS_STATE, ledcontrol_table[LED_GPS_STATE][pHeartbeat->ext_sensor_state]);
+    LED_setState(LED_STORAGE_STATE, ledcontrol_table[LED_STORAGE_STATE][pHeartbeat->storage_state]);
+    LED_setState(LED_COMBINED_STATE, ledcontrol_table[LED_COMBINED_STATE][pHeartbeat->switch_state]);
 }

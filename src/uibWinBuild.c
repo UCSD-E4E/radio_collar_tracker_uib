@@ -116,7 +116,7 @@ void app()
 
 void timer1_IRQ()
 {
-	LEDcontrol();
+	LED_control();
 }
 /******************************************************************************
  * Function Definitions
