@@ -87,41 +87,147 @@ I2C_Desc_e I2C_Desc;
  */
 int I2C_Init(void)
 {
-    CLEARBIT(PRTWI, PRR0);
-    SETBIT(PORTD0, PORTD);
+
+    digitalWrite(SDA, 1);
+    digitalWrite(SCL, 1);
+
+    CLEARBIT(PRTWI, PRR0); //Power reduction register to enable TWI 7.9.2
+    SETBIT(PORTD0, PORTD); // read thru 10.2.1
     SETBIT(PORTD1, PORTD);
 
     TWBR = 18;
-    SETFIELD(0, TWPS0, 0x03, TWSR);
+    SETFIELD(0, TWPS0, 0x03, TWSR); //this is setting the first prescaler, see what that value needs to be
 
-    SETBIT(TWEA, TWCR);
-    SETBIT(TWEN, TWCR);
-    SETBIT(TWIE, TWCR);
-    SETBIT(TWINT, TWCR);
-    I2C_Desc.state = I2C_STATE_IDLE;
+
+    SETMASK((1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWIE), TWCR); //learn how to convert to bit mask  1100 0101
 
     return 1;
 }
+/**
+ * Master Write Function 
+ * Takes in data pointer, amount of data, the address of the device the write is being sent to, and a timeout var
+ * @return  1 if successful, otherwise 0
+ */
 
 int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms)
 {
+    uint16_t i;
 
-    return 1;
-}
+    //START Command
+    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
 
-int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms)
-{
-    I2C_Desc.deviceAddr = deviceAddress;
-    I2C_Desc.pData = pData;
-    I2C_Desc.dataLen = size;
-    I2C_Desc.mode = I2C_MODE_READ;
-    if(!I2C_SetStart())
-    {
+    //Wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+        //how does this exit in case of an error?
+    }
+
+    //check if start condition was acknowledged
+    if((TWSR & 0xF8) != I2C_STATUS_START){
         return 0;
     }
-    I2C_WaitComplete(timeout_ms);
+
+    I2C_Desc.state = I2C_STATE_SLAW;
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); //Check if SLA+W LSb should be 0 or 1
+    
+    //Clear Inturrupt
+    SETMASK((1 << TWINT) | (1 << TWEA), TWCR);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+
+    }
+
+    //check if MT of SLA+W was acknowledged
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 0;
+    }
+
+    for(i = 0x00; i < size; i++){
+        
+        //load TWDR with the current data message
+        TWDR = pData[i];
+
+        //Clear Inturrupt
+        SETMASK((1 << TWINT) | (1 << TWEA), TWCR);
+        //wait for TWINT
+        while(!(TWCR & (1<<TWINT))){
+
+        }
+        //GETBIT() will make this easier to read
+
+        //check if MT of Data was acknowledged
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+            return 0;
+        }
+
+    }
+    //Send STOP command
+    CLEARMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
     return 1;
 }
+
+/**
+ * Master Read Function 
+ * Takes in pointer to where the read data will be stored, the amount of read data, 
+ * the address of the device being read from, and a timeout var
+ * @return  1 if successful, otherwise 0
+ */
+int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms)
+{
+    uint16_t i;
+
+    //START Command
+    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
+
+    //Wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+
+    }
+
+    //check if start condition was acknowledged
+    if((TWSR & 0xF8) != I2C_STATUS_START){
+        return 0;
+    }
+
+    //Set deviceAddress to SLA+R
+    ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01); //check LSb for R/W
+    //send address to TWDR
+    TWDR = deviceAddress;
+    //Clear Inturrupt
+    SETMASK((1 << TWINT) | (1 << TWEA), TWCR);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+
+    }
+
+    //check if MT of SLA+R was acknowledged
+    if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
+        return 0;
+    }
+
+    for(i = 0x00; i < size; i++){
+        //Record data from the TWDR
+        pData[i] = TWDR;
+
+        //Clear Inturrupt
+        SETMASK((1 << TWINT) | (1 << TWEA), TWCR);
+        //wait for TWINT
+        while(!(TWCR & (1<<TWINT))){
+
+        }
+
+        //check if MT of SLA+W was acknowledged
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
+            return 0;
+        }
+    }
+    //Send STOP command
+    CLEARMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
+    return 1;
+}
+
+//This lower section will not be used
 
 void I2C_DoStart(I2C_Desc_e *I2C_Desc)
 {
