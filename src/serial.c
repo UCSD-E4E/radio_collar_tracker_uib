@@ -11,6 +11,7 @@
 #include "serial.h"
 
 #include <stddef.h>
+#include <stdio.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <string.h>
@@ -23,9 +24,9 @@
 /******************************************************************************
  * Defines
  ******************************************************************************/
-#define RX_BUFFER_LEN   256
-#define TX_BUFFER_LEN   16
-
+#define RX_BUFFER_LEN 256
+#define TX_BUFFER_LEN 16
+#define PRINTF_BUFFER_LEN 512
 /******************************************************************************
  * Typedefs
  ******************************************************************************/
@@ -34,45 +35,45 @@ typedef enum SerialType_
     SerialType_USB,
     SerialType_HW,
     SerialType_NULL
-}SerialType_e;
+} SerialType_e;
 
 typedef struct USBSerial_
 {
     uint8_t init;
-}USBSerial_t;
+} USBSerial_t;
 
 typedef struct SerialBuffer_
 {
     size_t len;
     size_t mask;
-    uint8_t* pBuffer;
+    uint8_t *pBuffer;
     volatile size_t head;
     volatile size_t tail;
-}SerialBuffer_t;
+} SerialBuffer_t;
 
 typedef struct HWSerial_
 {
     SerialBuffer_t rxBuffer;
     SerialBuffer_t txBuffer;
-}HWSerial_t;
+} HWSerial_t;
 
 typedef struct SerialHandle_
 {
     SerialDevice_e device;
-    void* pDesc;
+    void *pDesc;
     SerialType_e type;
-}SerialHandle_t;
+} SerialHandle_t;
 /******************************************************************************
  * Static Function Prototypes
  ******************************************************************************/
-static SerialHandle_t* Serial_getDeviceHandle(SerialDevice_e device);
-static void HWSerial_Init(SerialConfig_t* pConfig);
-static int HWSerial_Read(HWSerial_t* pDesc, uint8_t* pData, uint32_t len);
+static SerialHandle_t *Serial_getDeviceHandle(SerialDevice_e device);
+static void HWSerial_Init(SerialConfig_t *pConfig);
+static int HWSerial_Read(HWSerial_t *pDesc, uint8_t *pData, uint32_t len);
 
-static int SerialBuffer_isFull(SerialBuffer_t* pBuffer);
-static int SerialBuffer_get(SerialBuffer_t* pBuffer, uint8_t* pData, size_t len);
-static int SerialBuffer_isEmpty(SerialBuffer_t* pBuffer);
-static int SerialBuffer_put(SerialBuffer_t* pBuffer, uint8_t byte);
+static int SerialBuffer_isFull(SerialBuffer_t *pBuffer);
+static int SerialBuffer_get(SerialBuffer_t *pBuffer, uint8_t *pData, size_t len);
+static int SerialBuffer_isEmpty(SerialBuffer_t *pBuffer);
+static int SerialBuffer_put(SerialBuffer_t *pBuffer, uint8_t byte);
 
 /******************************************************************************
  * Module Static Data
@@ -80,14 +81,14 @@ static int SerialBuffer_put(SerialBuffer_t* pBuffer, uint8_t byte);
 static USBSerial_t Serial_OBC;
 static HWSerial_t Serial_GPS;
 static SerialHandle_t SerialDeviceTable[] =
-{
-    {SerialDevice_GPS, &Serial_GPS, SerialType_HW},
-    {SerialDevice_OBC, &Serial_OBC, SerialType_USB},
-    {SerialDevice_NULL, NULL, SerialType_NULL}
-};
+    {
+        {SerialDevice_GPS, &Serial_GPS, SerialType_HW},
+        {SerialDevice_OBC, &Serial_OBC, SerialType_USB},
+        {SerialDevice_NULL, NULL, SerialType_NULL}};
 
 static uint8_t Serial_GPSRxBuffer[RX_BUFFER_LEN];
 static uint8_t Serial_GPSTxBuffer[TX_BUFFER_LEN];
+static char Serial_printfBuffer[PRINTF_BUFFER_LEN];
 /******************************************************************************
  * Global Data
  ******************************************************************************/
@@ -100,18 +101,18 @@ static uint8_t Serial_GPSTxBuffer[TX_BUFFER_LEN];
  * @param  pConfig Serial Configuration
  * @return         1 if successful, otherwise 0
  */
-SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
+SerialDesc_t *Serial_Init(SerialConfig_t *pConfig)
 {
-    USBSerial_t* pUSBSerial;
-    HWSerial_t* pHWSerial;
-    SerialHandle_t* pHandle = Serial_getDeviceHandle(pConfig->device);
-    switch(pConfig->device)
+    USBSerial_t *pUSBSerial;
+    HWSerial_t *pHWSerial;
+    SerialHandle_t *pHandle = Serial_getDeviceHandle(pConfig->device);
+    switch (pConfig->device)
     {
     case SerialDevice_OBC:
         USBDevice_attach();
         pUSBSerial->init = 1;
         pUSBSerial = pHandle->pDesc;
-        return (void*)pHandle;
+        return (void *)pHandle;
     case SerialDevice_GPS:
         HWSerial_Init(pConfig);
         pHWSerial = pHandle->pDesc;
@@ -123,7 +124,7 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
         pHWSerial->rxBuffer.mask = pHWSerial->rxBuffer.len - 1;
         pHWSerial->txBuffer.len = TX_BUFFER_LEN;
         pHWSerial->txBuffer.mask = pHWSerial->txBuffer.len - 1;
-        return (void*) pHandle;
+        return (void *)pHandle;
     default:
         return NULL;
     }
@@ -140,10 +141,10 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
  * @param  len   Length of Buffer
  * @return       Number of bytes read
  */
-int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
+int Serial_Read(SerialDesc_t *pDesc, uint8_t *pBuf, uint32_t len)
 {
-    SerialHandle_t* pHandle = (SerialHandle_t*)pDesc;
-    switch(pHandle->type)
+    SerialHandle_t *pHandle = (SerialHandle_t *)pDesc;
+    switch (pHandle->type)
     {
     case SerialType_USB:
         return USBSerial_Read(pBuf, len);
@@ -163,10 +164,10 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
  * @param  len   Length of data
  * @return       1 if successful, otherwise 0
  */
-int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
+int Serial_Write(SerialDesc_t *pDesc, uint8_t *pBuf, uint32_t len)
 {
-    SerialHandle_t* pHandle = (SerialHandle_t*) pDesc;
-    switch(pHandle->type)
+    SerialHandle_t *pHandle = (SerialHandle_t *)pDesc;
+    switch (pHandle->type)
     {
     case SerialType_USB:
         return USBSerial_Write(pBuf, len);
@@ -175,12 +176,12 @@ int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
     }
 }
 
-static SerialHandle_t* Serial_getDeviceHandle(SerialDevice_e device)
+static SerialHandle_t *Serial_getDeviceHandle(SerialDevice_e device)
 {
-    SerialHandle_t* pHandle = SerialDeviceTable;
-    while(pHandle->pDesc)
+    SerialHandle_t *pHandle = SerialDeviceTable;
+    while (pHandle->pDesc)
     {
-        if(pHandle->device == device)
+        if (pHandle->device == device)
         {
             return pHandle;
         }
@@ -189,12 +190,11 @@ static SerialHandle_t* Serial_getDeviceHandle(SerialDevice_e device)
     return NULL;
 }
 
-static void HWSerial_Init(SerialConfig_t* pConfig)
+static void HWSerial_Init(SerialConfig_t *pConfig)
 {
     cli();
     SETBIT(U2X1, UCSR1A);
     UBRR1 = 207;
-
 
     UCSR1B = 0;
     SETBIT(RXEN1, UCSR1B);
@@ -215,7 +215,7 @@ static void HWSerial_Init(SerialConfig_t* pConfig)
  */
 ISR(USART1_RX_vect)
 {
-    if(GETBIT(UPE1, UCSR1A))
+    if (GETBIT(UPE1, UCSR1A))
     {
         readDiscardByte(UDR1);
         return;
@@ -228,23 +228,22 @@ ISR(USART1_RX_vect)
  */
 ISR(USART1_UDRE_vect)
 {
-
 }
 
-static int SerialBuffer_isFull(SerialBuffer_t* pBuffer)
+static int SerialBuffer_isFull(SerialBuffer_t *pBuffer)
 {
     return (pBuffer->head - pBuffer->tail) == pBuffer->len ? 1 : 0;
 }
 
-static int SerialBuffer_isEmpty(SerialBuffer_t* pBuffer)
+static int SerialBuffer_isEmpty(SerialBuffer_t *pBuffer)
 {
     return (pBuffer->head - pBuffer->tail) == 0U ? 1 : 0;
 }
 
-static int SerialBuffer_put(SerialBuffer_t* pBuffer, uint8_t byte)
+static int SerialBuffer_put(SerialBuffer_t *pBuffer, uint8_t byte)
 {
     size_t offset;
-    if(SerialBuffer_isFull(pBuffer))
+    if (SerialBuffer_isFull(pBuffer))
     {
         return 0;
     }
@@ -255,17 +254,17 @@ static int SerialBuffer_put(SerialBuffer_t* pBuffer, uint8_t byte)
     return 1;
 }
 
-static int SerialBuffer_get(SerialBuffer_t* pBuffer, uint8_t* pData, size_t len)
+static int SerialBuffer_get(SerialBuffer_t *pBuffer, uint8_t *pData, size_t len)
 {
     size_t nElements;
     size_t offset;
-    if(SerialBuffer_isEmpty(pBuffer))
+    if (SerialBuffer_isEmpty(pBuffer))
     {
         return 0;
     }
     offset = pBuffer->tail & pBuffer->mask;
     nElements = pBuffer->head - pBuffer->tail;
-    if(nElements < len)
+    if (nElements < len)
     {
         len = nElements;
     }
@@ -274,8 +273,16 @@ static int SerialBuffer_get(SerialBuffer_t* pBuffer, uint8_t* pData, size_t len)
     return len;
 }
 
-static int HWSerial_Read(HWSerial_t* pDesc, uint8_t* pData, uint32_t len)
+static int HWSerial_Read(HWSerial_t *pDesc, uint8_t *pData, uint32_t len)
 {
     return SerialBuffer_get(&pDesc->rxBuffer, pData, len);
 }
 
+void Serial_Printf(SerialDesc_t *pDesc, const char *pFmt, ...)
+{
+    va_list vargs;
+    va_start(vargs, pFmt);
+    vsnprintf(Serial_printfBuffer, PRINTF_BUFFER_LEN, pFmt, vargs);
+    va_end(vargs);
+    Serial_Write(pDesc, (void*) Serial_printfBuffer, strlen(Serial_printfBuffer));
+}
