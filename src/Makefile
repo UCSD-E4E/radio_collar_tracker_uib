@@ -38,7 +38,7 @@ LDFLAGS = -Os -Wl,--gc-sections -mmcu=$(DEVICE) -lm
 LDLIBS = -lm
 
 SRCS = uib.c LED_module.c CDC.c cutils.c serial.c USBCore.c sensor_module.c \
-	status_decoder.c sensor_encoder.c nmea.c compass.c voltage.c
+	status_decoder.c sensor_encoder.c nmea.c compass.c voltage.c I2C.c
 COBJS = $(SRCS:%.c=%.o)
 
 DEPDIR := .deps
