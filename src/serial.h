@@ -34,6 +34,8 @@
  * Includes
  ******************************************************************************/
 #include <stdint.h>
+#include <stdarg.h>
+
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -97,4 +99,6 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
  * @return       1 if successful, otherwise 0
  */
 int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
+
+void Serial_Printf(SerialDesc_t* pDesc, const char* pFmt, ...);
 #endif /* __SERIAL_H__ */
