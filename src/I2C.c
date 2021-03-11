@@ -116,32 +116,15 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
     uint16_t i;
 
     //START Command
-    CLEARMASK((1 << TWSTO), TWCR);
-    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
-
-    //Wait for TWINT
-    while(!(TWCR & (1<<TWINT))){
-        //how does this exit in case of an error?
-    }
-
-    //check if start condition was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
-    if((TWSR & 0xF8) != I2C_STATUS_START){
+    if(TW_Start() == 0){
         return 0;
     }
-
-    I2C_Desc.state = I2C_STATE_SLAW;
 
     //Set deviceAddress to SLA+W
     TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); //Check if SLA+W LSb should be 0 or 1
     
     //Clear Inturrupt
-    SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-    CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-    //wait for TWINT
-    while(!(TWCR & (1<<TWINT))){
-
-    }
+    TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
@@ -155,12 +138,7 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
         TWDR = pData[i];
 
         //Clear Inturrupt
-        SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-        CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-        //wait for TWINT
-        while(!(TWCR & (1<<TWINT))){
-
-        }
+        TW_ClearInterrupt();
         //GETBIT() will make this easier to read
 
         //check if MT of Data was acknowledged
@@ -171,9 +149,82 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
 
     }
     //Send STOP command
-    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
-    CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
+    TW_Stop();
     return 1;
+}
+/**
+ * Master Write Function after sending the location of the of the register being written to
+ * Takes in data pointer, amount of data, the address of the device the write is being sent to, the address of the register
+ * at the device that the data is being sent to, and a timeout var
+ * @return  1 if successful, otherwise 0
+ */
+int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    uint16_t i;
+
+    //START Command
+    if(TW_Start() == 0){
+        return 0;
+    }
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 0;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 0;
+    }
+    
+    //run a repeated start
+    if(TW_Start() == 0){
+        return 0;
+    };
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 0;
+    }
+
+    for(i = 0x00; i < size; i++){
+        
+        //load TWDR with the current data message
+        TWDR = pData[i];
+
+        //Clear Interrupt
+        TW_ClearInterrupt();
+        //GETBIT() will make this easier to read
+
+        //check if MT of Data was acknowledged
+        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+            return 0;
+        }
+
+    }
+    TW_Stop();
 }
 
 /**
@@ -186,18 +237,8 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
 {
     uint16_t i;
 
-    //START Command
-    CLEARMASK((1 << TWSTO), TWCR);
-    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
-
-    //Wait for TWINT
-    while(!(TWCR & (1<<TWINT))){
-
-    }
-
-    //check if start condition was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); //mask Status regs to 0 before checking TWSR
-    if((TWSR & 0xF8) != I2C_STATUS_START){
+    //START Command, or Repeated start if STOP was not sent before this function
+    if(TW_Start() == 0){
         return 0;
     }
 
@@ -206,12 +247,7 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
     //send address to TWDR
 
     //Clear Inturrupt
-    SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-    CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-    //wait for TWINT
-    while(!(TWCR & (1<<TWINT))){
-
-    }
+    TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
@@ -224,12 +260,7 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
         pData[i] = TWDR;
 
         //Clear Inturrupt
-        SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-        CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-        //wait for TWINT
-        while(!(TWCR & (1<<TWINT))){
-
-        }
+        TW_ClearInterrupt();
 
         //check if MT of SLA+W was acknowledged
         CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
@@ -238,12 +269,126 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
         }
     }
     //Send STOP command
-    SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
-    CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
+    TW_Stop();
     return 1;
 }
 
+/**
+ * Master Read Function after sending the location of the of the register being written to
+ * Takes in data pointer, amount of data, the address of the device the write is being sent to, the address of the register
+ * at the device that the data is being read from, and a timeout var
+ * @return  1 if successful, otherwise 0
+ */
+int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    uint16_t i;
+
+    //START Command
+    if(TW_Start() == 0){
+        return 0;
+    }
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 0;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 0;
+    }
+    
+    //run a repeated start
+    if(TW_Start() == 0){
+        return 0;
+    };
+
+    //Set deviceAddress to SLA+R
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
+
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+R was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
+        return 0;
+    }
+
+    for(i = 0x00; i < size; i++){
+        
+        //Record data from the TWDR
+        pData[i] = TWDR;
+
+        //Clear Inturrupt
+        TW_ClearInterrupt();
+
+        //check if MT of SLA+W was acknowledged
+        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
+            return 0;
+        }
+    }
+    TW_Stop();
+}
+
+TW_Start(){
+    
+    //START Command
+    // CLEARMASK((1 << TWSTO), TWCR);
+    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
+
+    //Wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+        //how does this exit in case of an error?
+    }
+
+    //check if start condition was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START){
+        return 0;
+    }
+
+    return 1;
+
+}
+
+TW_Stop(){
+    //STOP command
+    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
+    // CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+}
+
+TW_ClearInterrupt(){
+    //Clear Inturrupt
+    // SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
+    // CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+
+    }
+}
+
 //This lower section will not be used
+
+
 
 /*
 
