@@ -192,7 +192,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     }
     
     //run a repeated start
-    if(TW_Start() == 0){
+    if(TW_RepeatedStart() == 0){
         return 0;
     };
 
@@ -313,7 +313,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
     
     //run a repeated start
-    if(TW_Start() == 0){
+    if(TW_RepeatedStart() == 0){
         return 0;
     };
 
@@ -361,6 +361,28 @@ int TW_Start(){
     //check if start condition was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START){
+        return 0;
+    }
+
+    return 1;
+
+}
+
+int TW_RepeatedStart(){
+    
+    //START Command
+    // CLEARMASK((1 << TWSTO), TWCR);
+    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
+
+    //Wait for TWINT
+    while(!(TWCR & (1<<TWINT))){
+        //how does this exit in case of an error?
+    }
+
+    //check if start condition was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_REPEAT_START){
         return 0;
     }
 
