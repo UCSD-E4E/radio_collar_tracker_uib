@@ -15,6 +15,7 @@
 #define CLEARBIT(x, n) (n &= ~(1 << x))
 #define CLEARMASK(MASK, REG) (REG &= ~MASK)
 #define SETMASK(MASK, REG) (REG |= MASK)
+
 uint8_t readDiscardByte(volatile uint8_t value);
 
 #endif /* CUTILS_H_ */

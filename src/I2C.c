@@ -346,7 +346,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_Stop();
 }
 
-TW_Start(){
+int TW_Start(){
     
     //START Command
     // CLEARMASK((1 << TWSTO), TWCR);
@@ -368,14 +368,15 @@ TW_Start(){
 
 }
 
-TW_Stop(){
+int TW_Stop(){
     //STOP command
     // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
     // CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+    return 1;
 }
 
-TW_ClearInterrupt(){
+int TW_ClearInterrupt(){
     //Clear Inturrupt
     // SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
     // CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
@@ -384,6 +385,7 @@ TW_ClearInterrupt(){
     while(!(TWCR & (1<<TWINT))){
 
     }
+    return 1;
 }
 
 //This lower section will not be used
