@@ -225,6 +225,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
 
     }
     TW_Stop();
+    return 1;
 }
 
 /**
@@ -285,7 +286,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
 
     //START Command
     if(TW_Start() == 0){
-        return 0;
+        return 2;
     }
 
     //Set deviceAddress to SLA+W
@@ -297,7 +298,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        return 0;
+        return 3;
     }
 
     //send the register address to the compass
@@ -309,12 +310,12 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if the transmission of the register location was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
-        return 0;
+        return 4;
     }
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
-        return 0;
+        return 5;
     };
 
     //Set deviceAddress to SLA+R
@@ -326,7 +327,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
-        return 0;
+        return 6;
     }
 
     for(i = 0x00; i < size; i++){
@@ -340,17 +341,18 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         //check if MT of SLA+W was acknowledged
         CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
         if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
-            return 0;
+            return 7;
         }
     }
     TW_Stop();
+    return 1;
 }
 
 int TW_Start(){
     
     //START Command
-    // CLEARMASK((1 << TWSTO), TWCR);
-    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
+    //CLEARMASK((1 << TWSTO), TWCR);
+    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
 
     //Wait for TWINT
@@ -371,8 +373,8 @@ int TW_Start(){
 int TW_RepeatedStart(){
     
     //START Command
-    // CLEARMASK((1 << TWSTO), TWCR);
-    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
+    //CLEARMASK((1 << TWSTO), TWCR);
+    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
 
     //Wait for TWINT
@@ -392,16 +394,16 @@ int TW_RepeatedStart(){
 
 int TW_Stop(){
     //STOP command
-    // SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
-    // CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
+    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
+    //CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
     return 1;
 }
 
 int TW_ClearInterrupt(){
     //Clear Inturrupt
-    // SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-    // CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
+    //SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
+    //CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
     TWCR = (1 << TWINT) | (1 << TWEN);
     //wait for TWINT
     while(!(TWCR & (1<<TWINT))){

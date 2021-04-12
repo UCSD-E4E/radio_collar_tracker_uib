@@ -32,4 +32,5 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
 int TW_Start();
 int TW_Stop();
 int TW_ClearInterrupt();
+int TW_RepeatedStart();
 #endif /* I2C_H_ */
