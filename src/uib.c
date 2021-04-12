@@ -73,15 +73,15 @@ void appMain(void)
       init_check = I2C_Init();
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       register
                                                                                   //(which is Config register A)
-      //register_address = 0x01;
-      //data[0] = 0xA0;
-      //write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-      //register_address = 0x02;
-      //data[0] = 0x01;
-      //write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
+      register_address = 0x01;
+      data[0] = 0xA0;
+      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
+      register_address = 0x02;
+      data[0] = 0x01;
+      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
-      //register_address = 0x06;
-      //read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+      register_address = 0x06;
+      read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
     
 
         // nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
