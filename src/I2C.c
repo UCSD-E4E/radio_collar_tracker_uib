@@ -75,7 +75,7 @@ typedef struct I2C_Desc_
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-static void I2C_SetStart(void);
+//static void I2C_SetStart(void);
 /******************************************************************************
  * Module Global Data
  ******************************************************************************/
@@ -164,7 +164,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
 
     //START Command
     if(TW_Start() == 0){
-        return 0;
+        return 2;
     }
 
     //Set deviceAddress to SLA+W
@@ -176,7 +176,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        return 0;
+        return 3;
     }
 
     //send the register address to the compass
@@ -188,12 +188,12 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     //check if the transmission of the register location was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
-        return 0;
+        return 4;
     }
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
-        return 0;
+        return 5;
     };
 
     //Set deviceAddress to SLA+W
@@ -205,7 +205,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        return 0;
+        return 6;
     }
 
     for(i = 0x00; i < size; i++){
@@ -220,7 +220,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
         //check if MT of Data was acknowledged
         CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
         if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
-            return 0;
+            return 7;
         }
 
     }
