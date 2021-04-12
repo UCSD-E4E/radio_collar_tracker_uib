@@ -159,8 +159,6 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
  * @return  1 if successful, otherwise 0
  */
 int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
-    
-    TW_Stop(); //for testing
 
     uint16_t i;
 
@@ -365,7 +363,7 @@ int TW_Start(){
 
     //check if start condition was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
-    if((TWSR & 0xF8) != I2C_STATUS_START){
+    if((TWSR & 0xF8) == I2C_STATUS_START || (TWSR & 0xF8) == I2C_STATUS_REPEAT_START){
         return 0;
     }
 

@@ -128,7 +128,7 @@ void appMain(void)
         
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        Serial_Printf(HAL_SystemDesc.pOBC, "data: %X\n\r", data);
+        Serial_Printf(HAL_SystemDesc.pOBC, "data: %X\n\r", data[0]);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
         
