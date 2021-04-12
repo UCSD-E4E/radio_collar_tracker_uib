@@ -208,7 +208,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
         return 6;
     }
 
-    for(i = 0x00; i < size; i++){
+    for(i = 0x00; i < size; i++){ 
         
         //load TWDR with the current data message
         TWDR = pData[i];
