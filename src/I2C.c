@@ -364,10 +364,10 @@ int TW_Start(){
     //check if start condition was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) == I2C_STATUS_START || (TWSR & 0xF8) == I2C_STATUS_REPEAT_START){
-        return 0;
+        return 1;
     }
 
-    return 1;
+    return 0;
 
 }
 
