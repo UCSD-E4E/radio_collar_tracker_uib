@@ -160,6 +160,8 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
  */
 int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
     
+    TW_Stop() //for testing
+
     uint16_t i;
 
     //START Command
