@@ -51,7 +51,7 @@ void appMain(void)
     init_check = 0;
     read_check = 0;
     write_check = 0;
-    char user_input = '/0';
+    char user_input = '0';
     
     //data[0] = 0x70; 
     //init_check = I2C_Init();
