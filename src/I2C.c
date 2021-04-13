@@ -315,9 +315,9 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
     
     //run a repeated start
-    if(TW_RepeatedStart() == 0){
-        return 5;
-    };
+    //if(TW_RepeatedStart() == 0){
+        //return 5;
+    //};
 
     //Set deviceAddress to SLA+R
     TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
