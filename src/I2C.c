@@ -315,21 +315,21 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
     
     //run a repeated start
-    //if(TW_RepeatedStart() == 0){
-        //return 5;
-    //};
+    if(TW_RepeatedStart() == 0){
+        return 5;
+    };
 
     //Set deviceAddress to SLA+R
     TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
 
     //Clear Inturrupt
-    //TW_ClearInterrupt();
+    TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
-    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
-    //if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
-        //return 6;
-    //}
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
+        return 6;
+    }
 
     for(i = 0x00; i < size; i++){
         
