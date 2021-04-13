@@ -86,9 +86,9 @@ void appMain(void)
 
       register_address = 0x06;
       Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      //while(user_input != 'a'){
-        //scanf("%s", &user_input);
-      //}
+      while(user_input != 'a'){
+        scanf("%s", &user_input);
+      }
 
       read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
     
