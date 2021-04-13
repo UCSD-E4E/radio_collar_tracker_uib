@@ -14,6 +14,7 @@
 #include "serial.h"
 #include "status_decoder.h"
 #include "I2C.h"
+#include <stdio.h>
 
 #define OBC_BUFFER_LEN  256
 
@@ -50,6 +51,7 @@ void appMain(void)
     init_check = 0;
     read_check = 0;
     write_check = 0;
+    char user_input = '/0';
     
     //data[0] = 0x70; 
     //init_check = I2C_Init();
@@ -73,14 +75,21 @@ void appMain(void)
       init_check = I2C_Init();
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       register
                                                                                   //(which is Config register A)
+      Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
       register_address = 0x01;
       data[0] = 0xA0;
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
+      Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
       register_address = 0x02;
       data[0] = 0x01;
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
       register_address = 0x06;
+      Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+      while(user_input != 'a'){
+        scanf("%s", &user_input);
+      }
+
       read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
     
 
