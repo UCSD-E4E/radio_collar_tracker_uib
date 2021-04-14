@@ -168,7 +168,7 @@ static int init()
 		return 0;
 	}
 
-	if(!LEDInit())
+	if(!LED_init())
 	{
 		return 0;
 	}

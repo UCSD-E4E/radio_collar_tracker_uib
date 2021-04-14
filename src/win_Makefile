@@ -32,7 +32,7 @@
 
 CC=gcc
 SRCS = main.c nmea.c voltage_sim.c compass_sim.c sensor_encoder.c status_decoder.c sensor_module.c LED_module.c uibWinBuild.c serial_sim.c
-CFLAGS = -std=gnu11 -c -g -Wall -Wextra -Wabi -Wformat -Wformat-nonliteral -Wformat-signedness
+CFLAGS = -std=gnu11 -c -g -Wall -Wextra -Wabi=11 -Wformat -Wformat-nonliteral -Wformat-signedness
 LDLIBS = -lpthread
 
 SIM_OBJS = compass_sim.o voltage_sim.o serial_sim.o
@@ -56,7 +56,7 @@ uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 clean:
-	-rm *.o uibWinBuild
+	-rm -f *.o uibWinBuild
 
 $(DEPDIR): ; @mkdir -p $@
 

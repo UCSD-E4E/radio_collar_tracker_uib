@@ -37,7 +37,6 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <util/delay.h>
 
 #include "cutils.h"
 #ifdef E4E_RTT_UIBv2
