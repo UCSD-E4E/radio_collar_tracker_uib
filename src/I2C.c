@@ -296,11 +296,11 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
 int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
     
     uint16_t i;
-    unsigned char user_input = 'b'; //for testing
+    //unsigned char user_input = 'b'; //for testing
 
     //START Command
     if(TW_Start() == 0){
-        //return 2;
+        return 2;
     }
 
     //Set deviceAddress to SLA+W
@@ -312,7 +312,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        //return 3;
+        return 3;
     }
 
     //send the register address to the compass
@@ -324,7 +324,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if the transmission of the register location was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
-        //return 4;
+        return 4;
     }
     
     /////////For Testing//////////
@@ -336,7 +336,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
-        //return 5;
+        return 5;
     };
 
     //Set deviceAddress to SLA+R
@@ -348,7 +348,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
-        //return 6;
+        return 6;
     }
 
     for(i = 0x00; i < size; i++){
@@ -362,7 +362,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         //check if MT of SLA+W was acknowledged
         CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
         if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
-            //return 7;
+            return 7;
         }
     }
     /////////For Testing//////////
