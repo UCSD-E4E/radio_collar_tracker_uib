@@ -71,17 +71,23 @@ void appMain(void)
         
     while(1)
     {
-      data[0] = 0x70; 
+      //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
+      register_address = 0x00;
+      data[0] = 0xF4; 
       init_check = I2C_Init();
-      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       register
-                                                                                  //(which is Config register A)
+      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
+      //register (which is Config register A)
       Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
+      
+      //Set up CRB with a gain of 1090
       register_address = 0x01;
-      data[0] = 0xA0;
+      data[0] = 0x20;
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
       Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
+      
+      //Set up MR with continuos measurement mode.
       register_address = 0x02;
-      data[0] = 0x01;
+      data[0] = 0x00;
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
       register_address = 0x06;

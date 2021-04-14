@@ -107,12 +107,16 @@ int I2C_Init(void)
 
     TWBR = 18;
     //SETFIELD(0, TWPS0, 0x03, TWSR); //this is setting the first prescaler, see what that value needs to be
-    CLEARMASK((1 << TWPS0) | (1 << 0x03) , TWSR);
+    CLEARMASK((1 << TWPS0) | (1 << 0x03) , TWSR); //might need to be a setmask instead
 
     SETMASK((1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWINT), TWCR); //learn how to convert to bit mask  1100 0101
 
     return 1;
 }
+
+//Maybe make a compass init, that sends in the correct commands to set up the compass.
+
+
 /**
  * Master Write Function 
  * Takes in data pointer, amount of data, the address of the device the write is being sent to, and a timeout var
@@ -324,10 +328,10 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
     
     /////////For Testing//////////
-    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-    while(user_input != 'a'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    }
+    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    // while(user_input != 'a'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    // }
     //////////////////////////////
     
     //run a repeated start
@@ -362,10 +366,10 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         }
     }
     /////////For Testing//////////
-    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
-    while(user_input != 'b'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    }
+    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
+    // while(user_input != 'b'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    // }
     //////////////////////////////
     TW_Stop();
     return 1;
