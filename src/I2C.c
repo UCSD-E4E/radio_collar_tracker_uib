@@ -352,7 +352,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
 
     for(i = 0x00; i < size; i++){
-        while((TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
             //Record data from the TWDR
             pData[i] = TWDR;
 
@@ -361,7 +361,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
 
             //check if MT of SLA+W was acknowledged
             CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
-            if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK || (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+            if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
                 return 7;
             }
         
