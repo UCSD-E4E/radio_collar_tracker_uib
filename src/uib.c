@@ -51,7 +51,7 @@ void appMain(void)
     init_check = 0;
     read_check = 0;
     write_check = 0;
-    char user_input = 0;
+    char user_input = 'a';
     
     //data[0] = 0x70; 
     //init_check = I2C_Init();
@@ -86,8 +86,8 @@ void appMain(void)
 
       register_address = 0x06;
       Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      while(user_input != 'a'){
-        scanf("%s", &user_input);
+      while(user_input != getc(stdin)){
+          
       }
 
       read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
