@@ -13,6 +13,7 @@
 #include <avr/io.h>
 #include <stdint.h>
 #include "cutils.h"
+#include "serial.h"
 #include <stddef.h>
 
 
@@ -284,6 +285,7 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
 int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
     
     uint16_t i;
+    unsigned char user_input = 'b'; //for testing
 
     //START Command
     if(TW_Start() == 0){
@@ -313,6 +315,13 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         //return 4;
     }
+    
+    /////////For Testing//////////
+    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    while(user_input != 'a'){
+          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    }
+    //////////////////////////////
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
@@ -345,6 +354,12 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
             //return 7;
         }
     }
+    /////////For Testing//////////
+    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
+    while(user_input != 'b'){
+          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    }
+    //////////////////////////////
     TW_Stop();
     return 1;
 }
