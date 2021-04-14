@@ -18,12 +18,12 @@
 
 #define OBC_BUFFER_LEN  256
 
-//typedef struct HAL_System_
-//{
-    //SerialDesc_t* pOBC;
-    //SerialDesc_t* pGPS;
-// }HAL_System_t;
-// HAL_System_t HAL_SystemDesc, *pHalSystem = &HAL_SystemDesc;
+typedef struct HAL_System_
+{
+    SerialDesc_t* pOBC;
+    SerialDesc_t* pGPS;
+}HAL_System_t;
+HAL_System_t HAL_SystemDesc, *pHalSystem = &HAL_SystemDesc;
 
 static int initHW(void);
 static void initTimer(void);
