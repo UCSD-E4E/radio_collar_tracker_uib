@@ -69,6 +69,13 @@ typedef struct I2C_Desc_
     size_t dataLen;
     size_t dataIdx;
 }I2C_Desc_e;
+
+typedef struct HAL_System_
+{
+    SerialDesc_t* pOBC;
+    SerialDesc_t* pGPS;
+}HAL_System_t;
+HAL_System_t HAL_SystemDesc, *pHalSystem = &HAL_SystemDesc;
 /******************************************************************************
  * Static Function Prototypes
  ******************************************************************************/
