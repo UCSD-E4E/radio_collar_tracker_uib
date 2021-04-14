@@ -86,7 +86,7 @@ void appMain(void)
 
       register_address = 0x06;
       Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      while(user_input != getc(stdin)){
+      while(user_input != Serial_Read(HAL_SystemDesc.pOBC)){
           
       }
 
