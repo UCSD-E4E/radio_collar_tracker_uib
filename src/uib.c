@@ -91,6 +91,7 @@ void appMain(void)
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
       register_address = 0x06;
+      data_size = 0x03
       //Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
       //while(user_input != 'a'){
           //Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
@@ -143,7 +144,9 @@ void appMain(void)
         
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        Serial_Printf(HAL_SystemDesc.pOBC, "data: %X\n\r", data[0]);
+        Serial_Printf(HAL_SystemDesc.pOBC, "data 1: %X\n\r", data[0]);
+        Serial_Printf(HAL_SystemDesc.pOBC, "data 2: %X\n\r", data[1]);
+        Serial_Printf(HAL_SystemDesc.pOBC, "data 3: %X\n\r", data[2]);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
         
