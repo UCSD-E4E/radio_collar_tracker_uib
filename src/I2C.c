@@ -444,8 +444,83 @@ int TW_ClearInterrupt(){
 
 //This lower section will not be used
 
+//////////Testing Functions/////////////
+int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    uint16_t i;
+    //unsigned char user_input = 'b'; //for testing
 
+    //START Command
+    if(TW_Start() == 0){
+        return 2;
+    }
 
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 3;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 4;
+    }
+    
+}
+
+int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    //run a repeated start
+    if(TW_RepeatedStart() == 0){
+        return 5;
+    };
+
+    //Set deviceAddress to SLA+R
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
+
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+R was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
+        return 6;
+    }
+
+    for(i = 0x00; i < size; i++){
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+            //Record data from the TWDR
+            pData[i] = TWDR;
+
+            //Clear Inturrupt
+            TW_ClearInterrupt();
+
+            //check if MT of SLA+W was acknowledged
+            CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+            if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+                return 7;
+            }
+        
+        }
+
+    }
+
+    //TW_Stop();
+    return 1;
+}
 /*
 
 void I2C_DoStart(I2C_Desc_e *I2C_Desc)

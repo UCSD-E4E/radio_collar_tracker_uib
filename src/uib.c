@@ -92,12 +92,20 @@ void appMain(void)
 
       register_address = 0x06;
       data_size = 0x03;
-      //Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      //while(user_input != 'a'){
-          //Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-      //}
-      //user_input = 'b';
-      read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+      read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
+      Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+      while(user_input != 'a'){
+          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+      }
+      user_input = 'b';
+
+      read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
+      Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+      while(user_input != 'a'){
+          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+      }
+      user_input = 'b';
+      TW_Stop();
     
 
         // nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
