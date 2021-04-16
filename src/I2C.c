@@ -486,7 +486,7 @@ int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress,
     uint16_t i;
     //run a repeated start
     if(TW_RepeatedStart() == 0){
-        return 5;
+        //return 5;
     };
 
     //Set deviceAddress to SLA+R
@@ -498,7 +498,7 @@ int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress,
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
-        return 6;
+        //return 6;
     }
 
     for(i = 0x00; i < size; i++){
@@ -512,7 +512,7 @@ int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress,
             //check if MT of SLA+W was acknowledged
             CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
             if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
-                return 7;
+                //return 7;
             }
         
         }
