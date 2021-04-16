@@ -213,12 +213,12 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
  * @param  len   Length of Buffer
  * @return       Number of bytes read
  */
-int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
+int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
 {
 	int retval;
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-	if(NULL == pHandle)
+	if(NULL == pHandle || NULL == pBuf)
 	{
 		return -1;
 	}
@@ -241,12 +241,12 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
  * @param  len   Length of data
  * @return       1 if successful, otherwise 0
  */
-int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
+int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
 {
 	int retval;
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-	if(NULL == pHandle)
+	if(NULL == pHandle || NULL == pBuf)
 	{
 		return -1;
 	}
@@ -267,16 +267,12 @@ int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 void* gpsSimulator(void* argp)
 {
 
-	const char* filename = "gps.txt";
-	FILE* gpsData = fopen(filename, "r");
+	FILE* gpsData = fopen("gps.txt", "r");
 	char* lineptr = NULL;
 	size_t bufLen = 0;
 	size_t nChars = 0;
 	struct timespec itv = {1, 0};
-    const char* gpsOutPipeName = "gps_out";
-    int gpsOutPipe = open(gpsOutPipeName, O_RDONLY);
-	const char* gpsPipeName = "gps_in";
-	int gpsPipe = open(gpsPipeName, O_WRONLY);
+	int gpsPipe = open("gps_in", O_WRONLY);
 	int run = 1;
 
 	if(!gpsData)
@@ -299,14 +295,13 @@ void* gpsSimulator(void* argp)
 		case 1:
 			nanosleep(&itv, NULL);
 			break;
+		case -1:
+			run = 0;
+			break;
 		default:
 			// output data to GPS pipe
 			write(gpsPipe, lineptr, nChars);
 			break;
-		case -1:
-			run = 0;
-			break;
-
 		}
 	}
 
@@ -321,10 +316,8 @@ void* obcSimulator(void* argp)
 	uint8_t heartbeatBuffer[25];
 	uint8_t gpsDataBuffer[1024];
 	struct timespec itv = {2, 0};
-	const char* obcOutPipeName = "obc_out";
-	int obcOutPipe = open(obcOutPipeName, O_RDONLY | O_NONBLOCK);
-	const char* obcInPipeName = "obc_in";
-	int obcInPipe = open(obcInPipeName, O_WRONLY);
+	int obcOutPipe = open("obc_out", O_RDONLY | O_NONBLOCK);
+	int obcInPipe = open("obc_in", O_WRONLY);
 	int run = 1;
 	int nChars = 0;
 	FILE* gpsFile = fopen("gps.bin", "wb");
@@ -393,12 +386,18 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	struct timespec spec;
 	uint16_t cksum;
 	uint8_t* pCksum = (uint8_t*) &cksum;
-	uint8_t* pSum = (uint8_t*) &pStruct->checksum;
+	uint8_t* pSum;
 
 	if(bufLen < nBytes)
 	{
 		return -1;
 	}
+
+	if(NULL == pBuf)
+	{
+		return -1;
+	}
+	pSum = (uint8_t*) &pStruct->checksum;
 
 	clock_gettime(CLOCK_REALTIME, &spec);
 
@@ -422,7 +421,7 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	pSum[1] = pCksum[0];
 
 	/*
-	 * Checkk that checksum is valid
+	 * Check that checksum is valid
 	 */
 	if(0 != crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t)))
 	{
@@ -432,7 +431,6 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	return nBytes;
 }
 
-#define POLY 0x8408
 /*
 //                                      16   12   5
 // this is the CCITT CRC 16 polynomial X  + X  + X  + 1.
