@@ -483,6 +483,7 @@ int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress,
 
 int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
     
+    uint16_t i;
     //run a repeated start
     if(TW_RepeatedStart() == 0){
         return 5;
