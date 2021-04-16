@@ -478,7 +478,7 @@ int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress,
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
-    
+    return 1;
 }
 
 int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
