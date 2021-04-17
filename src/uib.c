@@ -72,6 +72,7 @@ void appMain(void)
         
     while(1)
     {
+      data_size = 0x01;
       //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
       register_address = 0x00;
       data[0] = 0xF4; 
