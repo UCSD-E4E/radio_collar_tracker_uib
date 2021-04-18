@@ -59,7 +59,7 @@ typedef struct Voltage_Desc_
 
 /**
  * Compass simulation file map.  This struct should have the same layout as the
- * underlying data store, and can be used if memory mapped files are avilable.
+ * underlying data store, and can be used if memory mapped files are available.
  */
 typedef struct Voltage_Sim_File_
 {
@@ -119,7 +119,7 @@ int Voltage_Init(void)
     {
         voltageDesc.pFile = fopen(voltageDesc.path, "w+b");
     }
-    random_num = rand() % 5000;
+    random_num = rand() % 5001;
     fwrite(&random_num, 2, 1, voltageDesc.pFile);
     return 1;
 }

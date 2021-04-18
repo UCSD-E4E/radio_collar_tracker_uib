@@ -32,7 +32,7 @@
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
  * 08/23/20  NH  Reorganized includes, fixed initial range, removed FIXME
- * 07/05/20  EL  Compltered compass functions
+ * 07/05/20  EL  Completed compass functions
  * 07/02/20  NH  Fixed value type
  * 07/01/20  NH  Initial commit
  */
@@ -63,7 +63,7 @@ typedef struct Compass_Desc_
 
 /**
  * Compass simulation file map.  This struct should have the same layout as the
- * underlying data store, and can be used if memory mapped files are avilable.
+ * underlying data store, and can be used if memory mapped files are available.
  */
 typedef struct Compass_Sim_File_
 {
@@ -117,7 +117,7 @@ int Compass_Init(Compass_Config_t* pConfig)
     {
         if(fread(&buffer, 2, 1, compassDesc.pFile) == 1)
         {
-            if(buffer <= 180 && buffer > -180)
+            if(buffer <= 180 && buffer >= -180)
             {
                 return 1;
             }
@@ -129,7 +129,7 @@ int Compass_Init(Compass_Config_t* pConfig)
         compassDesc.pFile = fopen(compassDesc.path, "w+b");
     }
     srand((unsigned) time(&random_var));
-    random_num = rand() % 360 - 180;
+    random_num = rand() % 361 - 180;
     fwrite(&random_num, 2, 1, compassDesc.pFile);
     return 1;
 }
