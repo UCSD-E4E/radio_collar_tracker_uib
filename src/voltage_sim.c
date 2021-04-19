@@ -108,7 +108,7 @@ int Voltage_Init(void)
     {
         if(fread(&buffer, 2, 1, voltageDesc.pFile) == 1)
         {
-            if(buffer <= 5000 && buffer >= 0)
+            if(buffer <= 6000 && buffer >= 0)
             {
                 return 1;
             }
@@ -119,7 +119,7 @@ int Voltage_Init(void)
     {
         voltageDesc.pFile = fopen(voltageDesc.path, "w+b");
     }
-    random_num = rand() % 5001;
+    random_num = rand() % 6001;
     fwrite(&random_num, 2, 1, voltageDesc.pFile);
     return 1;
 }

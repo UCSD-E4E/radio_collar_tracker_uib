@@ -117,7 +117,7 @@ int Compass_Init(Compass_Config_t* pConfig)
     {
         if(fread(&buffer, 2, 1, compassDesc.pFile) == 1)
         {
-            if(buffer <= 180 && buffer >= -180)
+            if(buffer <= 180 && buffer > -180)
             {
                 return 1;
             }
@@ -129,7 +129,7 @@ int Compass_Init(Compass_Config_t* pConfig)
         compassDesc.pFile = fopen(compassDesc.path, "w+b");
     }
     srand((unsigned) time(&random_var));
-    random_num = rand() % 361 - 180;
+    random_num = rand() % 360 - 179;
     fwrite(&random_num, 2, 1, compassDesc.pFile);
     return 1;
 }
