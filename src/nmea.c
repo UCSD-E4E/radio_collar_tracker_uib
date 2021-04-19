@@ -453,7 +453,7 @@ NMEA_Message_e NMEA_Decode(char c)
         counter++;
         if(counter == 3)
         {
-            str[counter] = 0;
+            str[counter] = '\0';
             message = decodeMessage(str);
             messageTable = getTable(message);
 
