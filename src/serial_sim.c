@@ -2,8 +2,8 @@
  * @file serial_sim.c
  *
  * @author Nathan Hui, nthui@eng.ucsd.edu
- *
- * @description
+ * 
+ * @description 
  * Radio Telemetry Tracker UI Board FW Windows Build.  This program provides a
  * way to test and simulate the UI Board FW without hardware (SIL).
  *
@@ -60,35 +60,35 @@
  */
 typedef struct SerialSim_Desc_
 {
-    SerialDevice_e device;
-    int pIn;
-    int pOut;
-    char* pInPipe;
-    char* pOutPipe;
-    void* (*simulatorThread) (void*);
-    pthread_t thread;
+	SerialDevice_e device;
+	int pIn;
+	int pOut;
+	char* pInPipe;
+	char* pOutPipe;
+	void* (*simulatorThread) (void*);
+	pthread_t thread;
 }SerialSim_Desc_t;
 
 typedef struct __attribute__((packed)) heartbeatPayload_
 {
-    uint8_t version;
-    uint8_t systemState;
-    uint8_t sdrState;
-    uint8_t externalSensorState;
-    uint8_t storageState;
-    uint8_t switchState;
-    uint64_t time;
+	uint8_t version;
+	uint8_t systemState;
+	uint8_t sdrState;
+	uint8_t externalSensorState;
+	uint8_t storageState;
+	uint8_t switchState;
+	uint64_t time;
 }heartbeatPayload_t;
 
 typedef struct __attribute__((packed)) heartbeatTransport_
 {
-    uint8_t sync1;
-    uint8_t sync2;
-    uint8_t class;
-    uint8_t id;
-    uint16_t len;
-    heartbeatPayload_t payload;
-    uint16_t checksum;
+	uint8_t sync1;
+	uint8_t sync2;
+	uint8_t class;
+	uint8_t id;
+	uint16_t len;
+	heartbeatPayload_t payload;
+	uint16_t checksum;
 }heartbeatTransport_t;
 
 /******************************************************************************
@@ -98,40 +98,36 @@ typedef struct __attribute__((packed)) heartbeatTransport_
 /******************************************************************************
  * Module Static Data
  ******************************************************************************/
-static SerialSim_Desc_t serialTable[] =
+static SerialSim_Desc_t serialTable[] = 
 {
-    {SerialDevice_GPS, 0, 0, "./gps_in", NULL, gpsSimulator, 0},
-    {SerialDevice_OBC, 0, 0, "./obc_in", "./obc_out", obcSimulator, 0},
-    {SerialDevice_NULL, 0, 0, NULL, NULL, NULL, 0}
+	{SerialDevice_GPS, 0, 0, "./gps_in", NULL, gpsSimulator, 0},
+	{SerialDevice_OBC, 0, 0, "./obc_in", "./obc_out", obcSimulator, 0},
+	{SerialDevice_NULL, 0, 0, NULL, NULL, NULL, 0}
 };
 
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
 static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
-        uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState);
+		uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState);
 static uint16_t crc16(uint8_t* pData, uint32_t length);
 static int createFIFOPipe(char* name);
 
 /******************************************************************************
  * Function Definitions
  ******************************************************************************/
-/**
- * Finds device parameters for specified serial device
- * @param device Desired serial device
- */
 SerialSim_Desc_t* SerialSim_FindDevice(SerialDevice_e device)
 {
-    SerialSim_Desc_t* pDevice;
+	SerialSim_Desc_t* pDevice;
 
-    for(pDevice = serialTable; pDevice->device != SerialDevice_NULL; pDevice++)
-    {
-        if(device == pDevice->device)
-        {
-            return pDevice;
-        }
-    }
-    return NULL;
+	for(pDevice = serialTable; pDevice->device != SerialDevice_NULL; pDevice++)
+	{
+		if(device == pDevice->device)
+		{
+			return pDevice;
+		}
+	}
+	return NULL;
 }
 
 /**
@@ -141,16 +137,16 @@ SerialSim_Desc_t* SerialSim_FindDevice(SerialDevice_e device)
  */
 SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
 {
-    SerialSim_Desc_t* pDesc = NULL;
-    int  			  flags = 0;
-    int               tempOutPipeReader;
+	SerialSim_Desc_t* pDesc = NULL;
+	int				  flags = 0;
+	int				  tempOutPipeReader;
 
-    pDesc = SerialSim_FindDevice(pConfig->device);
-    if(NULL == pDesc)
-    {
-        printf("Failed to find device\n");
-        return NULL;
-    }
+	pDesc = SerialSim_FindDevice(pConfig->device);
+	if(NULL == pDesc)
+	{
+		printf("Failed to find device\n");
+		return NULL;
+	}
 
     if(pDesc->pInPipe)
     {
@@ -193,8 +189,8 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
         pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread, NULL);
     }
 
-    close(tempOutPipeReader);
-    return (void*)pDesc;
+	close(tempOutPipeReader);
+	return (void*)pDesc;
 }
 
 /**
@@ -210,15 +206,15 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
  */
 int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
 {
-    SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
+	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-    if(NULL == pHandle || NULL == pBuf)
-    {
-        printf("Serial_Read: NULL parameter\n");
-        return -1;
-    }
+	if(NULL == pHandle || NULL == pBuf)
+	{
+		printf("Serial_Read: NULL parameter\n");
+		return -1;
+	}
 
-    return read(pHandle->pIn, pBuf, len);
+	return read(pHandle->pIn, pBuf, len);
 }
 
 
@@ -233,20 +229,20 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
  */
 int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
 {
-    SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
+	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-    if(NULL == pHandle || NULL == pBuf)
-    {
-        return -1;
-    }
+	if(NULL == pHandle || NULL == pBuf)
+	{
+		return -1;
+	}
 
-    // We will be using a 256 byte r/w buffer
-    if(len > 256)
-    {
-        return -1;
-    }
+	// We will be using a 256 byte r/w buffer
+	if(len > 256)
+	{
+		return -1;
+	}
 
-    return write(pHandle->pOut, pBuf, len);
+	return write(pHandle->pOut, pBuf, len);
 }
 
 /**
@@ -254,47 +250,48 @@ int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
  */
 void* gpsSimulator(void* argp)
 {
-    FILE*  			gpsData = fopen("gps.txt", "r");
-    char*  			lineptr = NULL;
-    size_t 			bufLen  = 0;
-    size_t 			nChars  = 0;
-    struct timespec itv     = {1, 0};
-    int 			gpsPipe = open("gps_in", O_WRONLY);
-    int 			run     = 1;
 
-    if(!gpsData)
-    {
-        printf("GPS data not found\n!");
-        return NULL;
-    }
+	FILE* gpsData = fopen("gps.txt", "r");
+	char* lineptr = NULL;
+	size_t bufLen = 0;
+	size_t nChars = 0;
+	struct timespec itv = {1, 0};
+	int gpsPipe = open("gps_in", O_WRONLY);
+	int run = 1;
 
-    if(gpsPipe == -1)
-    {
-        printf("Failed to open GPS pipe\n");
-        return NULL;
-    }
+	if(!gpsData)
+	{
+		printf("GPS data not found\n!");
+		return NULL;
+	}
 
-    while(run)
-    {
-        nChars = getline(&lineptr, &bufLen, gpsData);
-        switch(nChars)
-        {
-        case 1:
-        case 2:
-            nanosleep(&itv, NULL);
-            break;
-        case -1:
-            run = 0;
-            break;
-        default:
-            // output data to GPS pipe
-            write(gpsPipe, lineptr, nChars);
-            break;
-        }
-    }
+	if(gpsPipe == -1)
+	{
+		printf("Failed to open GPS pipe\n");
+		return NULL;
+	}
 
-    free(lineptr);
-    return NULL;
+	while(run)
+	{
+		nChars = getline(&lineptr, &bufLen, gpsData);
+		switch(nChars)
+		{
+		case 1:
+		case 2:
+			nanosleep(&itv, NULL);
+			break;
+		case -1:
+			run = 0;
+			break;
+		default:
+			// output data to GPS pipe
+			write(gpsPipe, lineptr, nChars);
+			break;
+		}
+	}
+
+	free(lineptr);
+	return NULL;
 }
 
 /**
@@ -302,62 +299,60 @@ void* gpsSimulator(void* argp)
  */
 void* obcSimulator(void* argp)
 {
-    uint8_t 		heartbeatBuffer[25];
-    uint8_t 		gpsDataBuffer[1024];
-    FILE* 			gpsFile;
-    struct timespec itv        = {2, 0};
-    int 			obcOutPipe = open("obc_out", O_RDONLY | O_NONBLOCK);
-    int 			obcInPipe  = open("obc_in", O_WRONLY);
-    int 			nChars     = 0;
+	uint8_t heartbeatBuffer[25];
+	uint8_t gpsDataBuffer[1024];
+	struct timespec itv = {2, 0};
+	int obcOutPipe = open("obc_out", O_RDONLY | O_NONBLOCK);
+	int obcInPipe = open("obc_in", O_WRONLY);
+	int nChars = 0;
+	FILE* gpsFile = fopen("gps.bin", "wb");
 
-    uint8_t sysState = 0, sdrState = 0, sensorState = 0, storageState = 0,
-            switchState = 0;
-    uint8_t sdrMax = 5, sensorMax = 5, storageMax = 6, systemMax = 7,
-            switchMax = 2;
+	uint8_t sysState = 0, sdrState = 0, sensorState = 0, storageState = 0,
+			switchState = 0;
+	uint8_t sdrMax = 5, sensorMax = 5, storageMax = 6, systemMax = 7,
+			switchMax = 2;
 
-    if(obcInPipe == -1)
-    {
-        printf("Failed to open OBC input pipe\n");
-        return NULL;
-    }
+	if(obcInPipe == -1)
+	{
+		printf("Failed to open OBC input pipe\n");
+		return NULL;
+	}
 
-    if(obcOutPipe == -1)
-    {
-        printf("Failed to open OBC output pipe\n");
-        return NULL;
-    }
+	if(obcOutPipe == -1)
+	{
+		printf("Failed to open OBC output pipe\n");
+		return NULL;
+	}
+	if(!gpsFile)
+	{
+	    printf("Failed to open GPS output file\n");
+	    printf("%s\n", strerror(errno));
+	    return NULL;
+	}
 
-    gpsFile = fopen("gps.bin", "wb");
-    if(!gpsFile)
-    {
-        printf("Failed to open GPS output file\n");
-        printf("%s\n", strerror(errno));
-        return NULL;
-    }
+	while(1)
+	{
+		nChars = encodeHeartbeat(heartbeatBuffer, 25, sysState++ % systemMax,
+				sdrState++ % sdrMax, sensorState++ % sensorMax,
+				storageState++ % storageMax, switchState++ % switchMax);
+		if(nChars)
+		{
+		    write(obcInPipe, "\r\n", 2);
+			write(obcInPipe, heartbeatBuffer, nChars);
+		}
 
-    while(1)
-    {
-        nChars = encodeHeartbeat(heartbeatBuffer, 25, sysState++ % systemMax,
-                sdrState++ % sdrMax, sensorState++ % sensorMax,
-                storageState++ % storageMax, switchState++ % switchMax);
-        if(nChars)
-        {
-            write(obcInPipe, "\r\n", 2);
-            write(obcInPipe, heartbeatBuffer, nChars);
-        }
-
-        nChars = read(obcOutPipe, gpsDataBuffer, 1024);
-        if(nChars != -1)
-        {
+		nChars = read(obcOutPipe, gpsDataBuffer, 1024);
+		if(nChars != -1)
+		{
             fwrite(gpsDataBuffer, nChars, 1, gpsFile);
             fflush(gpsFile);
-        }
+		}
+		
+		nanosleep(&itv, NULL);
 
-        nanosleep(&itv, NULL);
+	}
 
-    }
-
-    return NULL;
+	return NULL;
 }
 
 /**
@@ -372,56 +367,56 @@ void* obcSimulator(void* argp)
  * @return	Number of bytes used
  */
 static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
-        uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState)
+		uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState)
 {
-    size_t 				  nBytes  = sizeof(heartbeatTransport_t);
-    heartbeatTransport_t* pStruct = (heartbeatTransport_t*) pBuf;
-    struct timespec 	  spec;
-    uint16_t 			  cksum;
-    uint8_t*              pCksum  = (uint8_t*) &cksum;
-    uint8_t*              pSum;
+	size_t nBytes = sizeof(heartbeatTransport_t);
+	heartbeatTransport_t* pStruct = (heartbeatTransport_t*) pBuf;
+	struct timespec spec;
+	uint16_t cksum;
+	uint8_t* pCksum = (uint8_t*) &cksum;
+	uint8_t* pSum;
 
-    if(bufLen < nBytes)
-    {
-        return -1;
-    }
+	if(bufLen < nBytes)
+	{
+		return -1;
+	}
 
-    if(NULL == pBuf)
-    {
-        return -1;
-    }
-    pSum = (uint8_t*) &pStruct->checksum;
+	if(NULL == pBuf)
+	{
+		return -1;
+	}
+	pSum = (uint8_t*) &pStruct->checksum;
 
-    clock_gettime(CLOCK_REALTIME, &spec);
+	clock_gettime(CLOCK_REALTIME, &spec);
 
-    pStruct->sync1 = 0xE4;
-    pStruct->sync2 = 0xEB;
-    pStruct->class = 0x01;
-    pStruct->id = 0x01;
-    pStruct->len = sizeof(heartbeatPayload_t);
+	pStruct->sync1 = 0xE4;
+	pStruct->sync2 = 0xEB;
+	pStruct->class = 0x01;
+	pStruct->id = 0x01;
+	pStruct->len = sizeof(heartbeatPayload_t);
 
-    pStruct->payload.externalSensorState = extState;
-    pStruct->payload.sdrState = sdrState;
-    pStruct->payload.storageState = strState;
-    pStruct->payload.switchState = swState;
-    pStruct->payload.systemState = sysState;
+	pStruct->payload.externalSensorState = extState;
+	pStruct->payload.sdrState = sdrState;
+	pStruct->payload.storageState = strState;
+	pStruct->payload.switchState = swState;
+	pStruct->payload.systemState = sysState;
 
-    pStruct->payload.time = spec.tv_sec * 1000 + spec.tv_nsec / 1e6;
+	pStruct->payload.time = spec.tv_sec * 1000 + spec.tv_nsec / 1e6;
 
-    cksum = crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t) - sizeof(uint16_t));
+	cksum = crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t) - sizeof(uint16_t));
 
-    pSum[0] = pCksum[1];
-    pSum[1] = pCksum[0];
+	pSum[0] = pCksum[1];
+	pSum[1] = pCksum[0];
 
-    /*
-     * Check that checksum is valid
-     */
-    if(0 != crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t)))
-    {
-        printf("CRC failed!\n");
-    }
+	/*
+	 * Check that checksum is valid
+	 */
+	if(0 != crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t)))
+	{
+		printf("CRC failed!\n");
+	}
 
-    return nBytes;
+	return nBytes;
 }
 
 /*
