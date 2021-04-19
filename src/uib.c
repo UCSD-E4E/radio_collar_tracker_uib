@@ -99,21 +99,22 @@ void appMain(void)
           data[i] = 0;
       }
       Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
-      read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
-      Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      while(user_input != 'a'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-      }
-      user_input = 'b';
+    //////////Code for read test on compass while unpluged//////////////
+    //   read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
+    //   Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    //   while(user_input != 'a'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    //   }
+    //   user_input = 'b';
 
-      read_check = I2C_MasterRegisterReceivePt2(address, register_address, data_ptr, data_size, timeout_ms);
-      Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-      while(user_input != 'a'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-      }
-      user_input = 'b';
-      TW_Stop();
-    
+    //   read_check = I2C_MasterRegisterReceivePt2(address, register_address, data_ptr, data_size, timeout_ms);
+    //   Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    //   while(user_input != 'a'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    //   }
+    //   user_input = 'b';
+    //   TW_Stop();
+    read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
 
         // nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
         // if(nchars > 0)
