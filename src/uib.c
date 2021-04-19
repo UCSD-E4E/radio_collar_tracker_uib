@@ -93,7 +93,7 @@ void appMain(void)
       write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
       register_address = 0x06;
-      data_size = 0x03;
+      data_size = 0x05;
       //resetting all elements in data to 0 for read
       for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
           data[i] = 0;
