@@ -354,7 +354,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     for(i = 0x00; i < size; i++){
         
         //Record data from the TWDR
-        pData[i] = TWDR;
+        //pData[i] = TWDR;
 
         //Clear Inturrupt
         TW_ClearInterrupt();
