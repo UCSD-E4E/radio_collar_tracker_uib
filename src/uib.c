@@ -98,7 +98,7 @@ void appMain(void)
       //resetting all elements in data to 0 for read
 
       for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-          if(i = 0){
+          if(i == 0){
               j = 1;
           }
           data[i] = 0;
@@ -168,7 +168,7 @@ void appMain(void)
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
         for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-            if(i = 0){
+            if(i == 0){
                 j = 1;
             }
             data[i] = 0;
