@@ -49,6 +49,7 @@ void appMain(void)
     int init_check = 0;
     int write_check = 0;
     int i = 0;
+    int j = 0;
     init_check = 0;
     read_check = 0;
     write_check = 0;
@@ -95,10 +96,16 @@ void appMain(void)
       register_address = 0x06;
       data_size = 0x05;
       //resetting all elements in data to 0 for read
+
       for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+          if(i = 0){
+              j = 1;
+          }
           data[i] = 0;
+          Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data %d: %X\n\r", j, data[i]);
+          j++;
       }
-      Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
+      //Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
     //////////Code for read test on compass while unpluged//////////////
     //   read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
     //   Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
@@ -160,7 +167,14 @@ void appMain(void)
         
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        Serial_Printf(HAL_SystemDesc.pOBC, "data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
+        for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+            if(i = 0){
+                j = 1;
+            }
+            data[i] = 0;
+            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r data %d: %X\n\r", j, data[i]);
+            j++;
+        }
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
         
