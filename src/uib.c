@@ -98,11 +98,16 @@ void appMain(void)
       //resetting all elements in data to 0 for read
 
       for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+          data[i] = 0;
+      }
+      
+      Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r");
+      for(i = 0; i < (int)data_size; i++){
           if(i == 0){
               j = 1;
           }
-          data[i] = 0;
-          Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data %d: %X\n\r", j, data[i]);
+
+          Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
           j++;
       }
       //Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
@@ -167,12 +172,12 @@ void appMain(void)
         
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
+        for(i = 0; i < (int)data_size; i++){
             if(i == 0){
                 j = 1;
             }
-            data[i] = 0;
-            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r data %d: %X\n\r", j, data[i]);
+            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
             j++;
         }
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
