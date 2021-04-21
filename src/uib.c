@@ -126,6 +126,7 @@ void appMain(void)
     //   }
     //   user_input = 'b';
     //   TW_Stop();
+    register_address = 0x06;
     read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
 
         // nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
@@ -182,7 +183,32 @@ void appMain(void)
         }
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
-        
+
+     ////////Read Check for a second register////////    
+      register_address = 0x05;
+      for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+          data[i] = 0;
+      }
+      
+      Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR 2---- \n\r");
+      for(i = 0; i < (int)data_size; i++){
+          if(i == 0){
+              j = 1;
+          }
+
+          Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+          j++;
+      }
+
+      read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT 2---- \n\r");
+        for(i = 0; i < (int)data_size; i++){
+            if(i == 0){
+                j = 1;
+            }
+            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+            j++;
+        }
         
     }
 }
