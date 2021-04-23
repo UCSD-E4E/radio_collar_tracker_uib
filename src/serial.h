@@ -88,7 +88,7 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig);
  * @param  len   Length of Buffer
  * @return       Number of bytes read
  */
-int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len);
+int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
 
 /**
  * Queues the specified data for transmit.  This function shall copy the 
@@ -99,7 +99,7 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len);
  * @param  len   Length of data
  * @return       1 if successful, otherwise 0
  */
-int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len);
+int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
 
 void Serial_Printf(SerialDesc_t* pDesc, const char* pFmt, ...);
 #endif /* __SERIAL_H__ */

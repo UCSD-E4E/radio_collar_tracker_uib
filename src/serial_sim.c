@@ -204,7 +204,7 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
  * @param  len   Length of Buffer
  * @return       Number of bytes read, -1 on error
  */
-int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
+int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 {
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
@@ -227,7 +227,7 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
  * @param  len   Length of data
  * @return       Number of bytes written, -1 on error
  */
-int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, size_t len)
+int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 {
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
