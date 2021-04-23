@@ -57,7 +57,11 @@ uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 
 clean:
 	touch gps_in obc_in obc_out
-	-rm -f *.o uibWinBuild gps_in obc_in obc_out gps.bin compassSim
+	-rm -f *.o uibWinBuild
+
+sim-clean:
+	touch gps_in gps_out obc_in obc_out
+	-rm -f *.o uibWinBuild gps_in gps_out obc_in obc_out gps.bin compassSim
 
 $(DEPDIR): ; @mkdir -p $@
 
