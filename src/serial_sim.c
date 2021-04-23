@@ -100,7 +100,7 @@ typedef struct __attribute__((packed)) heartbeatTransport_
  ******************************************************************************/
 static SerialSim_Desc_t serialTable[] = 
 {
-	{SerialDevice_GPS, 0, 0, "./gps_in", NULL, gpsSimulator, 0},
+	{SerialDevice_GPS, 0, 0, "./gps_in", "./gps_out", gpsSimulator, 0},
 	{SerialDevice_OBC, 0, 0, "./obc_in", "./obc_out", obcSimulator, 0},
 	{SerialDevice_NULL, 0, 0, NULL, NULL, NULL, 0}
 };
@@ -139,7 +139,7 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
 {
 	SerialSim_Desc_t* pDesc = NULL;
 	int				  flags = 0;
-	int				  tempOutPipeReader;
+	int*			  outPipeReader = NULL;
 
 	pDesc = SerialSim_FindDevice(pConfig->device);
 	if(NULL == pDesc)
@@ -173,23 +173,37 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
             return NULL;
         }
 
-        tempOutPipeReader = open(pDesc->pOutPipe, O_RDONLY | O_NONBLOCK);
+		outPipeReader = (int*) malloc(sizeof(int));
+		if(NULL == outPipeReader)
+		{
+			printf("Failed to allocate memory for output pipe reader\n");
+			return NULL;
+		}
+
+        *outPipeReader = open(pDesc->pOutPipe, O_RDONLY | O_NONBLOCK);
+		if(*outPipeReader == -1)
+		{
+			printf("Failed to open output pipe reader: %s\n", strerror(errno));
+			free(outPipeReader);
+            return NULL;
+		}
+
         flags |= O_WRONLY | O_CREAT;
         pDesc->pOut = open(pDesc->pOutPipe, flags, 0777);
         if(pDesc->pOut == -1)
         {
             printf("Failed to open output pipe\n");
-            close(tempOutPipeReader);
+			free(outPipeReader);
             return NULL;
         }
     }
 
     if(pDesc->simulatorThread != NULL)
     {
-        pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread, NULL);
+        pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread,
+			outPipeReader);
     }
 
-	close(tempOutPipeReader);
 	return (void*)pDesc;
 }
 
@@ -257,17 +271,20 @@ void* gpsSimulator(void* argp)
 	size_t nChars = 0;
 	struct timespec itv = {1, 0};
 	int gpsPipe = open("gps_in", O_WRONLY);
+	int gpsOutPipe = *((int*) argp);
 	int run = 1;
 
 	if(!gpsData)
 	{
 		printf("GPS data not found\n!");
+		free(argp);
 		return NULL;
 	}
 
 	if(gpsPipe == -1)
 	{
 		printf("Failed to open GPS pipe\n");
+		free(argp);
 		return NULL;
 	}
 
@@ -290,6 +307,8 @@ void* gpsSimulator(void* argp)
 		}
 	}
 
+	printf("GPS simulation completed\n");
+	free(argp);
 	free(lineptr);
 	return NULL;
 }
@@ -302,7 +321,7 @@ void* obcSimulator(void* argp)
 	uint8_t heartbeatBuffer[25];
 	uint8_t gpsDataBuffer[1024];
 	struct timespec itv = {2, 0};
-	int obcOutPipe = open("obc_out", O_RDONLY | O_NONBLOCK);
+	int obcOutPipe = *((int*) argp);
 	int obcInPipe = open("obc_in", O_WRONLY);
 	int nChars = 0;
 	FILE* gpsFile = fopen("gps.bin", "wb");
@@ -315,18 +334,15 @@ void* obcSimulator(void* argp)
 	if(obcInPipe == -1)
 	{
 		printf("Failed to open OBC input pipe\n");
+		free(argp);
 		return NULL;
 	}
 
-	if(obcOutPipe == -1)
-	{
-		printf("Failed to open OBC output pipe\n");
-		return NULL;
-	}
 	if(!gpsFile)
 	{
 	    printf("Failed to open GPS output file\n");
 	    printf("%s\n", strerror(errno));
+		free(argp);
 	    return NULL;
 	}
 
@@ -352,6 +368,7 @@ void* obcSimulator(void* argp)
 
 	}
 
+	free(argp);
 	return NULL;
 }
 

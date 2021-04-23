@@ -56,7 +56,6 @@ uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 clean:
-	touch gps_in obc_in obc_out
 	-rm -f *.o uibWinBuild
 
 sim-clean:
