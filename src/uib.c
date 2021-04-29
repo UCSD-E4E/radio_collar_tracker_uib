@@ -90,7 +90,7 @@ void appMain(void)
 
         /////////////Reading from all six XYZ data registers////////////////
 
-        for(k = 0; k < 5; k++){
+        for(k = 0; k < 6; k++){
             for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
                 data[i] = 0;
             }
