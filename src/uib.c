@@ -50,165 +50,81 @@ void appMain(void)
     int write_check = 0;
     int i = 0;
     int j = 0;
+    int k = 0;
     init_check = 0;
     read_check = 0;
     write_check = 0;
     unsigned char user_input = 'b';
-    
-    //data[0] = 0x70; 
-    //init_check = I2C_Init();
-    //write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th register
-                                                                                  //(which is Config register A)
-    //register_address = 0x01;
-    //data[0] = 0xA0;
-    //write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-    //register_address = 0x02;
-    //data[0] = 0x01;
-    //write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
-    //register_address = 0x06;
-    //read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
     
 
         
     while(1)
     {
-      data_size = 0x01;
-      //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
-      register_address = 0x00;
-      data[0] = 0xF4; 
-      init_check = I2C_Init();
-      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
-      //register (which is Config register A)
-      Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
+        data_size = 0x01;
+        //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
+        register_address = 0x00;
+        data[0] = 0xF4; 
+        init_check = I2C_Init();
+        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
+        //register (which is Config register A)
+        Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
       
-      //Set up CRB with a gain of 1090
-      register_address = 0x01;
-      data[0] = 0x20;
-      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-      Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
+        //Set up CRB with a gain of 1090
+        register_address = 0x01;
+        data[0] = 0x20;
+        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
+        Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
       
-      //Set up MR with continuos measurement mode.
-      register_address = 0x02;
-      data[0] = 0x00;
-      write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-
-      register_address = 0x06;
-      data_size = 0x05;
-      //resetting all elements in data to 0 for read
-
-      for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-          data[i] = 0;
-      }
-      
-      Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r");
-      for(i = 0; i < (int)data_size; i++){
-          if(i == 0){
-              j = 1;
-          }
-
-          Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-          j++;
-      }
-      //Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR---- \n\r data 1: %X\n\r data 2: %X\n\r data 3: %X\n\r data 4: %X\n\r data 5: %X\n\r", data[0], data[1], data[2], data[3], data[4]);
-    //////////Code for read test on compass while unpluged//////////////
-    //   read_check = I2C_MasterRegisterReceivePt1(address, register_address, data_ptr, data_size, timeout_ms);
-    //   Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-    //   while(user_input != 'a'){
-    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    //   }
-    //   user_input = 'b';
-
-    //   read_check = I2C_MasterRegisterReceivePt2(address, register_address, data_ptr, data_size, timeout_ms);
-    //   Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-    //   while(user_input != 'a'){
-    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    //   }
-    //   user_input = 'b';
-    //   TW_Stop();
-    register_address = 0x06;
-    read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
-
-        // nchars = Serial_Read(HAL_SystemDesc.pGPS, rxBuf, 63);
-        // if(nchars > 0)
-        // {
-        //     for(int i = 0; i < nchars; i++)
-        //     {
-        //         if(sensorParse(rxBuf[i]) == 1)
-        //         {
-        //             int init_check = 0;
-        //             init_check = I2C_Init();
-        //             printf("init_check: %d\n", init_check);
-        //             Serial_Write(HAL_SystemDesc.pOBC, (uint8_t*) &sensor_packet,
-        //                 sizeof(sensor_packet));
-
-
-		//             }
-        //     }
-        // }
-
-        // nchars = Serial_Read(HAL_SystemDesc.pOBC, rxBuf, 63);
-        // if(nchars > 0)
-        // {
-        //     for(int i = 0; i < nchars; i++)
-        //     {
-        //         if(decodeStatusPacket(&status_data, rxBuf[i]))
-        //         {
-        //             StatusDecoder_encodeLEDs(&status_data.payload);
-        //         }
-        //     }
-        // }
-        ///////////I2C.c Master Read Write Testing///////////////
-
-        //for init testing
-        //Serial_Printf(HAL_SystemDesc.pOBC, "init_check: %d\n", init_check);
-        //Serial_Printf(HAL_SystemDesc.pOBC, "TWSR init: %X\n\r", TWSR);
-        //Serial_Printf(HAL_SystemDesc.pOBC, "TWCR init: %X\n\r", TWCR);
+        //Set up MR with continuos measurement mode.
+        register_address = 0x02;
+        data[0] = 0x00;
+        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
         
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
-        //Serial_Printf(HAL_SystemDesc.pOBC, "data: %X\n\r", *data_ptr);
-        //Serial_Printf(HAL_SystemDesc.pOBC, "TWSR write: %X\n\r", TWSR);
-        //Serial_Printf(HAL_SystemDesc.pOBC, "TWCR write: %X\n\r", TWCR);
         
-        //for read testing 
-        Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
-        for(i = 0; i < (int)data_size; i++){
-            if(i == 0){
-                j = 1;
+        register_address = 0x03;
+        data_size = 0x05;
+        //resetting all elements in data to 0 for read
+
+        /////////////Reading from all six XYZ data registers////////////////
+
+        for(k = 0; k < 5; k++){
+            for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+                data[i] = 0;
             }
-            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-            j++;
-        }
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
+    
+            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR %d---- \n\r", k);
+            for(i = 0; i < (int)data_size; i++){
+                if(i == 0){
+                    j = 1;
+                }
 
-     ////////Read Check for a second register////////    
-      register_address = 0x05;
-      for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-          data[i] = 0;
-      }
-      
-      Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR 2---- \n\r");
-      for(i = 0; i < (int)data_size; i++){
-          if(i == 0){
-              j = 1;
-          }
-
-          Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-          j++;
-      }
-
-      read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT 2---- \n\r");
-        for(i = 0; i < (int)data_size; i++){
-            if(i == 0){
-                j = 1;
+                Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+                j++;
             }
-            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-            j++;
+        
+            read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+        
+            //for read testing 
+            Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
+
+            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT %d---- \n\r", k);
+            for(i = 0; i < (int)data_size; i++){
+                if(i == 0){
+                    j = 1;
+                }
+                Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+                j++;
+            }
+            Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
+            Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
+            register_address++; 
         }
+        
+
+
         
     }
 }
