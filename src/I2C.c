@@ -366,7 +366,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         }
         //if the last byte of data is reached (indicated by a NACK in TWSR) leave the loop
         if((TWSR & 0xF8) == I2C_STATUS_DATA_R_NACK){
-            //break;
+            break;
         }
 
     }
@@ -378,6 +378,44 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //////////////////////////////
     TW_Stop();
     return 1;
+}
+
+int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint32_t timeout_ms){
+
+    uint16_t i;
+
+    //START Command
+    if(TW_Start() == 0){
+        return 2;
+    }
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 3;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 4;
+    }
+
+    TW_Stop();
+    return 1;
+
 }
 
 int TW_Start(){

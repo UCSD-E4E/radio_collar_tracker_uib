@@ -38,53 +38,47 @@ void appMain(void)
     DataStatusPacket_t status_data;
     int eight = 8;
     
-    //For testing I2C.c
+    //For using I2C.c
     uint8_t address = 0x1E;
     uint8_t data[32] = {}; 
     uint8_t register_address = 0x00;
     uint8_t *data_ptr = data;
-    uint16_t data_size = 1;//sizeof(*data_ptr)/sizeof(data_ptr[0]);
+    uint16_t data_size = 1;
     uint32_t timeout_ms = 0x00; //not yet implemented
     int read_check = 0;
     int init_check = 0;
     int write_check = 0;
     int i = 0;
     int j = 0;
-    int k = 0;
-    init_check = 0;
-    read_check = 0;
-    write_check = 0;
-    unsigned char user_input = 'b';
 
+    ///////Setting up Compass for continuous measurement mode///////////
+
+    data_size = 0x01;
+    //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
+    register_address = 0x00;
+    data[0] = 0xF4; 
+    init_check = I2C_Init();
+    write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
+    //register (which is Config register A)
+    Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
     
+    //Set up CRB with a gain of 1090
+    register_address = 0x01;
+    data[0] = 0x20;
+    write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
+    Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
+    
+    //Set up MR with continuos measurement mode.
+    register_address = 0x02;
+    data[0] = 0x00;
+    write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
         
     while(1)
     {
-        data_size = 0x01;
-        //Set up CRA with TS enabled, 8 averaging, Data output to 30Hz
-        register_address = 0x00;
-        data[0] = 0xF4; 
-        init_check = I2C_Init();
-        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
-        //register (which is Config register A)
-        Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
-      
-        //Set up CRB with a gain of 1090
-        register_address = 0x01;
-        data[0] = 0x20;
-        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "write_check 2: %d\n\r", write_check);
-      
-        //Set up MR with continuos measurement mode.
-        register_address = 0x02;
-        data[0] = 0x00;
-        write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
-        
+
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
-
-        //may have to take this upper portion out of this loop
 
         
         register_address = 0x06;
@@ -123,41 +117,8 @@ void appMain(void)
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
 
-        // for(k = 0; k < 6; k++){
-        //     for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-        //         data[i] = 0;
-        //     }
-    
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR %d---- \n\r", k);
-        //     for(i = 0; i < (int)data_size; i++){
-        //         if(i == 0){
-        //             j = 1;
-        //         }
-
-        //         Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-        //         j++;
-        //     }
-        
-        //     read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
-        
-        //     //for read testing 
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT %d---- \n\r", k);
-        //     for(i = 0; i < (int)data_size; i++){
-        //         if(i == 0){
-        //             j = 1;
-        //         }
-        //         Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-        //         j++;
-        //     }
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
-        //     register_address++; 
-        // }
-        
-
-
+        register_address = 0x03;
+        I2C_SetRegisterPointer(address, register_address, timeout_ms);
         
     }
 }
