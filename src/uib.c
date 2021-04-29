@@ -83,45 +83,78 @@ void appMain(void)
         
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
+
+        //may have to take this upper portion out of this loop
+
         
-        register_address = 0x03;
-        data_size = 0x05;
+        register_address = 0x06;
+        data_size = 0x06;
         //resetting all elements in data to 0 for read
 
         /////////////Reading from all six XYZ data registers////////////////
 
-        for(k = 0; k < 6; k++){
-            for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
-                data[i] = 0;
-            }
-    
-            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR %d---- \n\r", k);
-            for(i = 0; i < (int)data_size; i++){
-                if(i == 0){
-                    j = 1;
-                }
-
-                Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-                j++;
-            }
-        
-            read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
-        
-            //for read testing 
-            Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-
-            Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT %d---- \n\r", k);
-            for(i = 0; i < (int)data_size; i++){
-                if(i == 0){
-                    j = 1;
-                }
-                Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-                j++;
-            }
-            Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
-            Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
-            register_address++; 
+        for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+            data[i] = 0;
         }
+
+        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR ---- \n\r");
+        for(i = 0; i < (int)data_size; i++){
+            if(i == 0){
+                j = 1;
+            }
+
+            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+            j++;
+        }
+    
+        read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+    
+        //for read testing 
+        Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
+
+        Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
+        for(i = 0; i < (int)data_size; i++){
+            if(i == 0){
+                j = 1;
+            }
+            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+            j++;
+        }
+        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
+        Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
+
+        // for(k = 0; k < 6; k++){
+        //     for(i = 0; i < sizeof(data)/sizeof(data[0]); i++){
+        //         data[i] = 0;
+        //     }
+    
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA CLEAR %d---- \n\r", k);
+        //     for(i = 0; i < (int)data_size; i++){
+        //         if(i == 0){
+        //             j = 1;
+        //         }
+
+        //         Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+        //         j++;
+        //     }
+        
+        //     read_check = I2C_MasterRegisterReceive(address, register_address, data_ptr, data_size, timeout_ms);
+        
+        //     //for read testing 
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
+
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT %d---- \n\r", k);
+        //     for(i = 0; i < (int)data_size; i++){
+        //         if(i == 0){
+        //             j = 1;
+        //         }
+        //         Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+        //         j++;
+        //     }
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
+        //     register_address++; 
+        // }
         
 
 
