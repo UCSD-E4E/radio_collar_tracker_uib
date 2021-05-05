@@ -336,7 +336,8 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //Set deviceAddress to SLA+R
     TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
 
-
+    //Clear Inturrupt
+    TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
@@ -346,7 +347,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
 
     //Clear Inturrupt
     TW_ClearInterrupt();
-    
+
     for(i = 0x00; i < size; i++){
         
 
