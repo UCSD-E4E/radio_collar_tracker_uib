@@ -327,12 +327,6 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         return 4;
     }
     
-    /////////For Testing//////////
-    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-    // while(user_input != 'a'){
-    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    // }
-    //////////////////////////////
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
@@ -342,8 +336,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //Set deviceAddress to SLA+R
     TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
 
-    //Clear Inturrupt
-    TW_ClearInterrupt();
+
 
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
@@ -351,6 +344,9 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         return 6;
     }
 
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+    
     for(i = 0x00; i < size; i++){
         
 
@@ -373,12 +369,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
 
 
     }
-    /////////For Testing//////////
-    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
-    // while(user_input != 'b'){
-    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    // }
-    //////////////////////////////
+
     TW_Stop();
     return 1;
 }
