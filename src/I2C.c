@@ -356,7 +356,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
 
         //if the last byte of data is reached (indicated by a NACK in TWSR) leave the loop
         if((TWSR & 0xF8) == I2C_STATUS_DATA_R_NACK){
-            break;
+            //break;
         }
         
         //Clear Inturrupt
