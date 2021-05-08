@@ -36,6 +36,7 @@
 #include "LED_module.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "cutils.h"
@@ -71,6 +72,7 @@ static int LED_counter[LED_MAPPING_END] =
 
 #ifdef E4E_RTT_SIM
 static uint8_t led_buf;
+static FILE* ledFile;
 #endif
 
 #ifdef E4E_RTT_UIBv2
@@ -101,6 +103,11 @@ int LED_init()
 {
 #ifdef E4E_RTT_SIM
     led_buf = 0;
+    ledFile = fopen("led.bin", "wb");
+    if(ledFile == NULL)
+    {
+        return 0;
+    }
 #elif defined(E4E_RTT_UIBv2)
     const LED_Map_t *pEntry = LED_table;
     while(pEntry->port)
@@ -213,5 +220,8 @@ int LED_control()
         }
 
     }
+
+    fwrite(&led_buf, 1, 1, ledFile);
+    fflush(ledFile);
     return 0;
 }

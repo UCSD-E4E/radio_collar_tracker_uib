@@ -46,6 +46,7 @@ src/compassSim
 src/gps_in
 src/gps_out
 src/gps.bin
+src/led.bin
 src/obc_in
 src/obc_out
 src/voltageSim

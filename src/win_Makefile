@@ -60,7 +60,7 @@ clean:
 
 sim-clean:
 	touch gps_in gps_out obc_in obc_out
-	-rm -f *.o uibWinBuild gps_in gps_out obc_in obc_out gps.bin compassSim voltageSim
+	-rm -f *.o uibWinBuild gps_in gps_out obc_in obc_out gps.bin compassSim voltageSim led.bin
 
 $(DEPDIR): ; @mkdir -p $@
 
