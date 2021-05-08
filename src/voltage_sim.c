@@ -102,6 +102,7 @@ int Voltage_Init(void)
     
     int16_t random_num;
     int16_t buffer;
+    srand(time(NULL));
 
     voltageDesc.pFile = fopen(voltageDesc.path, "rb");
     if(voltageDesc.pFile != NULL)
@@ -113,15 +114,29 @@ int Voltage_Init(void)
                 return 1;
             }
         }
-        rewind(voltageDesc.pFile);
+        fclose(voltageDesc.pFile);
+        voltageDesc.pFile = NULL;
     }
+
     if(voltageDesc.pFile == NULL)
     {
+        random_num = rand() % 6001;
+
         voltageDesc.pFile = fopen(voltageDesc.path, "w+b");
+        if(voltageDesc.pFile == NULL)
+        {
+            return 0;
+        }
+
+        fwrite(&random_num, 2, 1, voltageDesc.pFile);
+
+        fflush(voltageDesc.pFile);
+        fclose(voltageDesc.pFile);
+        voltageDesc.pFile = NULL;
     }
-    random_num = rand() % 6001;
-    fwrite(&random_num, 2, 1, voltageDesc.pFile);
-    return 1;
+
+    voltageDesc.pFile = fopen(voltageDesc.path, "rb");
+    return (voltageDesc.pFile == NULL) ? 0 : 1;
 }
 
 /**
@@ -169,7 +184,7 @@ int Voltage_Sim_Init(Voltage_Sim_Config_t* pConfig)
     else
     {
         voltageDesc.path = (char *)pConfig->path;
-        return 1;
+        return Voltage_Init();
     }
 }
 
