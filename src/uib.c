@@ -15,6 +15,7 @@
 #include "status_decoder.h"
 #include "I2C.h"
 #include <stdio.h>
+#include <conio.h>
 
 #define OBC_BUFFER_LEN  256
 
@@ -51,6 +52,8 @@ void appMain(void)
     int i = 0;
     int j = 0;
 
+    while(!kbhit()){}; //loop for testing
+
     ///////Setting up Compass for continuous measurement mode///////////
 
     data_size = 0x01;
@@ -73,9 +76,11 @@ void appMain(void)
     data[0] = 0x00;
     write_check = I2C_MasterRegisterTransmit(address, register_address, data_ptr, data_size, timeout_ms);
 
-        
-    while(1)
-    {
+    //Sending data
+
+
+    //while(1)
+    //{
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
 
@@ -143,7 +148,8 @@ void appMain(void)
             Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
             j++;
         }
-    }
+    //}
+    while(1){}; //inf loop for testing (do nothing until reset button is hit)
 }
 
 int main()
