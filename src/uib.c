@@ -15,7 +15,7 @@
 #include "status_decoder.h"
 #include "I2C.h"
 #include <stdio.h>
-#include <conio.h>
+
 
 #define OBC_BUFFER_LEN  256
 
