@@ -51,8 +51,13 @@ void appMain(void)
     int write_check = 0;
     int i = 0;
     int j = 0;
+    char user_input = 'b';
 
-    while(!kbhit()){}; //loop for testing
+    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    while(user_input != 'a'){
+        Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    }
+    user_input = 'b'; //loop for testing
 
     ///////Setting up Compass for continuous measurement mode///////////
 
