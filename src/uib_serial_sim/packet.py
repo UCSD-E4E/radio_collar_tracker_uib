@@ -1,9 +1,7 @@
 import abc
-import time
-
-from dataclasses import dataclass
 
 from crccheck.crc import Crc16
+from dataclasses import dataclass
 
 
 class Payload(abc.ABC):
@@ -96,16 +94,17 @@ class Packet:
         byte_array = self.to_bytearray()
         return bytes(byte_array)
 
+    @staticmethod
+    def from_bytearray(byte_array) -> 'Packet':
+        assert byte_array[0] == Packet.SYNC_CHAR_1
+        assert byte_array[1] == Packet.SYNC_CHAR_2
+        if byte_array[2] == DataPayload.packet_class and byte_array[3] == DataPayload.packet_id:
+            payload_len = int.from_bytes(byte_array[4:6], byteorder="big")
+            payload = DataPayload.from_bytearray(byte_array[6:6 + payload_len])
 
-def main():
-    payload = DataPayload(int(time.time()), -100, 7, 8, 9, 10, 11)
-    packet = Packet(payload)
-    print(packet)
+            checksum = Crc16.calc(byte_array[:6 + payload_len])
+            assert checksum == int.from_bytes(byte_array[-2:], byteorder="big")
+        else:
+            raise ValueError(f"Unknown packet class {byte_array[2]} and ID {byte_array[3]}")
 
-    time.sleep(2)
-    payload.time = time.time()
-    print(packet)
-
-
-if __name__ == "__main__":
-    main()
+        return Packet(payload)
