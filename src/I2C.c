@@ -107,7 +107,7 @@ int I2C_Init(void)
 
     TWBR = 18;
     //SETFIELD(0, TWPS0, 0x03, TWSR); //this is setting the first prescaler, see what that value needs to be
-    CLEARMASK((1 << TWPS0) | (1 << 0x03) , TWSR); //might need to be a setmask instead
+    SETMASK((1 << TWPS0) | (1 << 0x03) , TWSR);
 
     SETMASK((1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWINT), TWCR); //learn how to convert to bit mask  1100 0101
 
@@ -203,22 +203,22 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
         return 4;
     }
     
-    //run a repeated start
-    if(TW_RepeatedStart() == 0){
-        return 5;
-    };
+    // //run a repeated start
+    // if(TW_RepeatedStart() == 0){
+    //     return 5;
+    // };
 
-    //Set deviceAddress to SLA+W
-    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    // //Set deviceAddress to SLA+W
+    // TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
     
-    //Clear Inturrupt
-    TW_ClearInterrupt();
+    // //Clear Inturrupt
+    // TW_ClearInterrupt();
 
-    //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
-    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        return 6;
-    }
+    // //check if MT of SLA+W was acknowledged
+    // CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    // if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+    //     return 6;
+    // }
 
     for(i = 0x00; i < size; i++){ 
         
