@@ -78,11 +78,11 @@ void appMain(void)
 
     while(1)
     {
-        Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
-        while(user_input != 'b'){
-            Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-        }
-        user_input = 'c';
+        // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
+        // while(user_input != 'b'){
+        //     Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+        // }
+        // user_input = 'c';
 
         // register_address = 0x09;
         // data_size = 0x01;
