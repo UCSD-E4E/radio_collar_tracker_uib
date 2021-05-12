@@ -119,14 +119,16 @@ void appMain(void)
             Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
             j++;
         }
-
+        
+        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
         register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
 
-        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
+
 
         //for read testing 
-        Serial_Printf(HAL_SystemDesc.pOBC, "reister_pointer_check: %d\n\r", register_pointer_check);
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
+        Serial_Printf(HAL_SystemDesc.pOBC, "reister_pointer_check: %d\n\r", register_pointer_check);
+
 
         Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
         for(i = 0; i < (int)data_size; i++){
