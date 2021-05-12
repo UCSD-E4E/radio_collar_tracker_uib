@@ -54,6 +54,8 @@ void appMain(void)
     int j = 0;
     char user_input = 'b';
 
+    init_check = I2C_Init();
+    
     Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
     while(user_input != 'a'){
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
@@ -68,7 +70,7 @@ void appMain(void)
     data[0] = 0xF4;
     data[1] = 0x20; 
     data[2] = 0x00;  
-    init_check = I2C_Init();
+
     write_check = I2C_MasterRegisterTransmit(address, register_address, data, data_size, timeout_ms); //with *data_ptr being 0x00, this will tell the compass to address it's 0th       
     //register (which is Config register A)
     Serial_Printf(HAL_SystemDesc.pOBC, "write_check 1: %d\n\r", write_check);
