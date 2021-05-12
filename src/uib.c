@@ -75,8 +75,8 @@ void appMain(void)
     //Sending data
 
 
-    //while(1)
-    //{
+    while(1)
+    {
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
 
@@ -144,8 +144,8 @@ void appMain(void)
             Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
             j++;
         }
-    //}
-    while(1){}; //inf loop for testing (do nothing until reset button is hit)
+    }
+    //while(1){}; //inf loop for testing (do nothing until reset button is hit)
 }
 
 int main()
