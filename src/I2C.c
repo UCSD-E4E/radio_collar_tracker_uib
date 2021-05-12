@@ -142,7 +142,7 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 0;
     }
@@ -157,7 +157,7 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
         //GETBIT() will make this easier to read
 
         //check if MT of Data was acknowledged
-        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+        //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
         if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
             return 0;
         }
@@ -189,7 +189,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 3;
     }
@@ -201,7 +201,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     TW_ClearInterrupt();
 
     //check if the transmission of the register location was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
@@ -218,7 +218,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
     // TW_ClearInterrupt();
 
     // //check if MT of SLA+W was acknowledged
-    // CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    // //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     // if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
     //     return 6;
     // }
@@ -233,7 +233,7 @@ int I2C_MasterRegisterTransmit(uint8_t deviceAddress, uint8_t registerAddress, u
         //GETBIT() will make this easier to read
 
         //check if MT of Data was acknowledged
-        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+        //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
         if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
             return 7;
         }
@@ -267,7 +267,7 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
     TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
         return 0;
     }
@@ -280,7 +280,7 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
         TW_ClearInterrupt();
 
         //check if MT of SLA+W was acknowledged
-        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+        //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
         if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
             return 0;
         }
@@ -313,7 +313,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 3;
     }
@@ -325,7 +325,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     //check if the transmission of the register location was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
@@ -343,7 +343,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
         return 6;
     }
@@ -366,7 +366,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
         TW_ClearInterrupt();
 
         //check if MT of SLA+W was acknowledged
-        CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+        //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
         if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
             return 7;
         }
@@ -394,7 +394,7 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 3;
     }
@@ -406,7 +406,7 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
     TW_ClearInterrupt();
 
     //check if the transmission of the register location was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
@@ -429,7 +429,7 @@ int TW_Start(){
     }
 
     //check if start condition was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) == I2C_STATUS_START || (TWSR & 0xF8) == I2C_STATUS_REPEAT_START){
         return 1;
     }
@@ -451,7 +451,7 @@ int TW_RepeatedStart(){
     }
 
     //check if the repeated start condition was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_REPEAT_START){
         return 0;
     }
@@ -500,7 +500,7 @@ int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress,
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 3;
     }
@@ -512,7 +512,7 @@ int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress,
     TW_ClearInterrupt();
 
     //check if the transmission of the register location was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
@@ -534,7 +534,7 @@ int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress,
     TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
-    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
         //return 6;
     }
@@ -548,7 +548,7 @@ int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress,
             TW_ClearInterrupt();
 
             //check if MT of SLA+W was acknowledged
-            CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+            //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
             if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
                 //return 7;
             }
