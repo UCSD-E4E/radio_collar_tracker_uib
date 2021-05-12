@@ -107,7 +107,10 @@ int I2C_Init(void)
 
     TWBR = 18;
     //SETFIELD(0, TWPS0, 0x03, TWSR); //this is setting the first prescaler, see what that value needs to be
-    SETMASK((1 << TWPS0) | (1 << 0x03) , TWSR);
+    //SETMASK((1 << TWPS0) | (1 << 0x03) , TWSR);
+    
+    SETBIT(TWPS0, TWSR);
+    CLEARBIT(0x03, TWSR);
 
     SETMASK((1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWINT), TWCR); //learn how to convert to bit mask  1100 0101
 
