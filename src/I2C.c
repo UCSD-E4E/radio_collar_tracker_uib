@@ -427,6 +427,8 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
 
 }
 
+
+
 int TW_Start(){
     
     //START Command

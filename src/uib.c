@@ -55,7 +55,7 @@ void appMain(void)
     char user_input = 'b';
 
     init_check = I2C_Init();
-    
+
     Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
     while(user_input != 'a'){
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
@@ -80,26 +80,32 @@ void appMain(void)
 
     while(1)
     {
+
+        //DRDY Check on the compass
+        register_address = 0x09;
+        data_size = 0x01;
+
+        while(0x01 & data[1]){
+            read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+
+            Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (Initial) ---- \n\r");
+            for(i = 0; i < (int)data_size; i++){
+                if(i == 0){
+                    j = 1;
+                }
+                Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+                j++;
+            }
+        }
+
+
         // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
         // while(user_input != 'b'){
         //     Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
         // }
         // user_input = 'c';
 
-        // register_address = 0x09;
-        // data_size = 0x01;
 
-
-        // read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
-
-        // Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (Initial) ---- \n\r");
-        // for(i = 0; i < (int)data_size; i++){
-        //     if(i == 0){
-        //         j = 1;
-        //     }
-        //     Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-        //     j++;
-        // }
 
 
         register_address = 0x03;
