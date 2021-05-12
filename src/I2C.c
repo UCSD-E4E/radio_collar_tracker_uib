@@ -411,7 +411,7 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
         return 4;
     }
 
-    TW_Stop();
+    //TW_Stop();
     return 1;
 
 }

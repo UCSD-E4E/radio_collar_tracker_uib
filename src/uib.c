@@ -49,6 +49,7 @@ void appMain(void)
     int read_check = 0;
     int init_check = 0;
     int write_check = 0;
+    int register_pointer_check = 0;
     int i = 0;
     int j = 0;
     char user_input = 'b';
@@ -57,7 +58,7 @@ void appMain(void)
     while(user_input != 'a'){
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
     }
-    user_input = 'b'; //loop for testing
+
 
     ///////Setting up Compass for continuous measurement mode///////////
 
@@ -77,11 +78,18 @@ void appMain(void)
 
     while(1)
     {
+        Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
+        while(user_input != 'b'){
+            Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+        }
+        user_input = 'c';
+
         //for write testing
         Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
 
         register_address = 0x09;
         data_size = 0x01;
+
 
         read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
 
@@ -115,9 +123,11 @@ void appMain(void)
             j++;
         }
 
-        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+        register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
+        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
 
         //for read testing 
+        Serial_Printf(HAL_SystemDesc.pOBC, "reister_pointer_check: %d\n\r", register_pointer_check);
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
 
         Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
