@@ -84,23 +84,20 @@ void appMain(void)
         }
         user_input = 'c';
 
-        //for write testing
-        Serial_Printf(HAL_SystemDesc.pOBC, "write_check: %d\n\r", write_check);
-
-        register_address = 0x09;
-        data_size = 0x01;
+        // register_address = 0x09;
+        // data_size = 0x01;
 
 
-        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+        // read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
 
-        Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (Initial) ---- \n\r");
-        for(i = 0; i < (int)data_size; i++){
-            if(i == 0){
-                j = 1;
-            }
-            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-            j++;
-        }
+        // Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (Initial) ---- \n\r");
+        // for(i = 0; i < (int)data_size; i++){
+        //     if(i == 0){
+        //         j = 1;
+        //     }
+        //     Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
+        //     j++;
+        // }
 
 
         register_address = 0x03;
@@ -124,6 +121,7 @@ void appMain(void)
         }
 
         register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
+
         read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
 
         //for read testing 
@@ -141,19 +139,6 @@ void appMain(void)
         Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read: %X\n\r", TWSR);
         Serial_Printf(HAL_SystemDesc.pOBC, "TWCR read: %X\n\r", TWCR);
 
-        register_address = 0x09;
-        data_size = 0x01;
-
-        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
-
-        Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (final) ---- \n\r");
-        for(i = 0; i < (int)data_size; i++){
-            if(i == 0){
-                j = 1;
-            }
-            Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
-            j++;
-        }
     }
     //while(1){}; //inf loop for testing (do nothing until reset button is hit)
 }
