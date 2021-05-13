@@ -85,7 +85,8 @@ void appMain(void)
         register_address = 0x09;
         data_size = 0x01;
 
-        while(!(0x01 & data[1])){
+        
+        do{
             read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
 
             Serial_Printf(HAL_SystemDesc.pOBC, "-----Compass Data Register (Initial) ---- \n\r");
@@ -96,7 +97,8 @@ void appMain(void)
                 Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
                 j++;
             }
-        }
+            Serial_Printf(HAL_SystemDesc.pOBC, "(0x01 & data[1]): %X \n\r", (0x01 & data[1]));
+        }while(!(0x01 & data[1]));
 
 
         // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
