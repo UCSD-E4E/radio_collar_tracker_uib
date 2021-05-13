@@ -110,8 +110,8 @@ void appMain(void)
 
 
 
-        register_address = 0x03;
-        data_size = 0x06;
+        register_address = 0x0A;
+        data_size = 0x03;
         //resetting all elements in data to 0 for read
 
         /////////////Reading from all six XYZ data registers////////////////
@@ -130,10 +130,11 @@ void appMain(void)
             j++;
         }
         
-        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rc): %X\n\r", TWSR);
-        register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rp): %X\n\r", TWSR);
+        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+        // read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
+        // Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rc): %X\n\r", TWSR);
+        // register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
+        // Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rp): %X\n\r", TWSR);
 
 
         //for read testing 
