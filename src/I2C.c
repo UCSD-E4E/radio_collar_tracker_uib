@@ -434,7 +434,7 @@ int TW_Start(){
     //START Command
     //CLEARMASK((1 << TWSTO), TWCR);
     //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA) | (1 << TWEA);
 
     //Wait for TWINT
     while(!(TWCR & (1<<TWINT))){
@@ -456,7 +456,7 @@ int TW_RepeatedStart(){
     //START Command
     //CLEARMASK((1 << TWSTO), TWCR);
     //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA) | (1 << TWEA);
 
     //Wait for TWINT
     while(!(TWCR & (1<<TWINT))){
@@ -477,7 +477,7 @@ int TW_Stop(){
     //STOP command
     //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
     //CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO) | (1 << TWEA);
     return 1;
 }
 
@@ -485,7 +485,7 @@ int TW_ClearInterrupt(){
     //Clear Inturrupt
     //SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
     //CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-    TWCR = (1 << TWINT) | (1 << TWEN);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
     //wait for TWINT
     while(!(TWCR & (1<<TWINT))){
 
