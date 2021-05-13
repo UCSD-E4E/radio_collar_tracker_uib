@@ -477,7 +477,7 @@ int TW_Stop(){
     //STOP command
     //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
     //CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO) | (1 << TWEA);
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
     return 1;
 }
 
