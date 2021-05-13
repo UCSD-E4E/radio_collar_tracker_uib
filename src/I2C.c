@@ -485,11 +485,12 @@ int TW_ClearInterrupt(){
     //Clear Inturrupt
     //SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
     //CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
+    TWCR = (1 << TWINT) | (1 << TWEN);
     //wait for TWINT
     while(!(TWCR & (1<<TWINT))){
 
     }
+    SETMASK((1 << TWEA), TWCR);
     return 1;
 }
 
