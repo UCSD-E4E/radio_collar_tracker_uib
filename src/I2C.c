@@ -490,7 +490,6 @@ int TW_ClearInterrupt(){
     while(!(TWCR & (1<<TWINT))){
 
     }
-    SETMASK((1 << TWEA), TWCR);
     return 1;
 }
 
