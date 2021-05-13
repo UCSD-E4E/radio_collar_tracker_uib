@@ -97,8 +97,8 @@ void appMain(void)
                 Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
                 j++;
             }
-            Serial_Printf(HAL_SystemDesc.pOBC, "(0x01 & data[1]): %X \n\r", (0x01 & data[1]));
-        }while(!(0x01 & data[1]));
+           
+        }while(!(0x01 & data[0]));
 
 
         // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
