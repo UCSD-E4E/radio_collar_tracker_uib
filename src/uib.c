@@ -97,7 +97,7 @@ void appMain(void)
                 Serial_Printf(HAL_SystemDesc.pOBC, "data %d: %X\n\r", j, data[i]);
                 j++;
             }
-           
+            Serial_Printf(HAL_SystemDesc.pOBC, "read_check (Initial): %d\n\r", read_check);
         }while(!(0x01 & data[0]));
 
 
