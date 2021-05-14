@@ -363,7 +363,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     for(i = 0x00; i < size; i++){
-        if(i = (size - 1)){
+        if(i == (size - 1)){
             pData[i] = I2C_ReadNack();
         }else{
             pData[i] = I2C_ReadAck();
