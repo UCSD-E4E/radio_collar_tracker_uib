@@ -360,29 +360,14 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
 
     //Clear Inturrupt
-    //TW_ClearInterrupt();
+    TW_ClearInterrupt();
 
     for(i = 0x00; i < size; i++){
-        
-        //Clear Inturrupt
-        TW_ClearInterrupt();
-
-        //Record data from the TWDR
-        pData[i] = TWDR;
-
-        // //if the last byte of data is reached (indicated by a NACK in TWSR) leave the loop
-        // if((TWSR & 0xF8) == I2C_STATUS_DATA_R_NACK){
-        //     //break;
-        // }
-        
-
-
-        // //check if MT of SLA+W was acknowledged
-        // //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
-        // if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
-        //     return 7;
-        // }
-
+        if(i = (size - 1)){
+            pData[i] = I2C_ReadNack();
+        }else{
+            pData[i] = I2C_ReadAck();
+        }
 
     }
 
@@ -455,8 +440,6 @@ int TW_Start(){
 int TW_RepeatedStart(){
     
     //START Command
-    //CLEARMASK((1 << TWSTO), TWCR);
-    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
 
     //Wait for TWINT
@@ -465,7 +448,7 @@ int TW_RepeatedStart(){
     }
 
     //check if the repeated start condition was acknowledged
-    //CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+
     if((TWSR & 0xF8) != I2C_STATUS_REPEAT_START){
         return 0;
     }
@@ -476,24 +459,33 @@ int TW_RepeatedStart(){
 
 int TW_Stop(){
     //STOP command
-    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTO), TWCR); //1001 0100
-    //CLEARMASK((1 << TWSTA) | (1 << 0x02), TWCR); 
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO) | (1 << TWEA);
+
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
     return 1;
 }
 
 int TW_ClearInterrupt(){
     //Clear Inturrupt
-    //SETMASK((1 << TWINT) | (1 << TWEN), TWCR);
-    //CLEARMASK((1 << TWSTA) | (1 << TWSTO) | (1 << 0x02), TWCR);
-    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
-    //wait for TWINT
-    while(!(TWCR & (1<<TWINT))){
 
-    }
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT)));
     return 1;
 }
 
+uint8_t I2C_ReadAck(){
+    TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT)));
+    return TWDR;
+}
+
+uint8_t I2C_ReadNack(){
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    //wait for TWINT
+    while(!(TWCR & (1<<TWINT)));
+    return TWDR;
+}
 //This lower section will not be used
 
 //////////Testing Functions/////////////

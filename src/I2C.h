@@ -36,4 +36,6 @@ int TW_Start();
 int TW_Stop();
 int TW_ClearInterrupt();
 int TW_RepeatedStart();
+uint8_t I2C_ReadAck();
+uint8_t I2C_ReadNack();
 #endif /* I2C_H_ */
