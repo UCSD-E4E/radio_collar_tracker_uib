@@ -130,11 +130,11 @@ void appMain(void)
             j++;
         }
         
-        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
-        // read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
-        // Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rc): %X\n\r", TWSR);
-        // register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
-        // Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rp): %X\n\r", TWSR);
+        //read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
+        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rc): %X\n\r", TWSR);
+        register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
+        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rp): %X\n\r", TWSR);
 
 
         //for read testing 
