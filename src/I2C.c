@@ -360,7 +360,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     }
 
     //Clear Inturrupt
-    TW_ClearInterrupt();
+    //TW_ClearInterrupt();
 
     for(i = 0x00; i < size; i++){
         if(i == (size - 1)){

@@ -139,7 +139,7 @@ void appMain(void)
 
         //for read testing 
         Serial_Printf(HAL_SystemDesc.pOBC, "read_check: %d\n\r", read_check);
-        Serial_Printf(HAL_SystemDesc.pOBC, "reister_pointer_check: %d\n\r", register_pointer_check);
+        Serial_Printf(HAL_SystemDesc.pOBC, "register_pointer_check: %d\n\r", register_pointer_check);
 
 
         Serial_Printf(HAL_SystemDesc.pOBC, "-----DATA OUT---- \n\r");
