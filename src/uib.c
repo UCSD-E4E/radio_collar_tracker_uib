@@ -110,8 +110,8 @@ void appMain(void)
 
 
 
-        register_address = 0x0A;
-        data_size = 0x03;
+        register_address = 0x03;
+        data_size = 0x06;
         //resetting all elements in data to 0 for read
 
         /////////////Reading from all six XYZ data registers////////////////
