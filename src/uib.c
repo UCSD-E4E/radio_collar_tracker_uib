@@ -15,6 +15,7 @@
 #include "status_decoder.h"
 #include "I2C.h"
 #include <stdio.h>
+#include <sys/time.h>
 
 
 #define OBC_BUFFER_LEN  256
@@ -53,12 +54,20 @@ void appMain(void)
     int i = 0;
     int j = 0;
     char user_input = 'b';
+    struct timeval stop, start;
+    unsigned long int time_elapsed_ms;
 
     init_check = I2C_Init();
 
     Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
     while(user_input != 'a'){
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    }
+
+    gettimeofday(&start, NULL);
+    while(time_elapsed_ms < 100){
+        gettimeofday(&stop, NULL);
+        printf("took %lu us\n", (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec);
     }
 
 
@@ -130,11 +139,8 @@ void appMain(void)
             j++;
         }
         
-        //read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
-        register_pointer_check = I2C_SetRegisterPointer(address, register_address, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rp): %X\n\r", TWSR);
-        read_check = I2C_MasterReceive(address, data, data_size, timeout_ms);
-        Serial_Printf(HAL_SystemDesc.pOBC, "TWSR read (rc): %X\n\r", TWSR);
+        read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+        
 
 
 
