@@ -140,7 +140,6 @@ int I2C_MasterTransmit(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uin
 
         //Clear Inturrupt
         TW_ClearInterrupt();
-        //GETBIT() will make this easier to read
 
         //check if MT of Data was acknowledged
         if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
@@ -287,7 +286,6 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     //check if MT of SLA+W was acknowledged
-     
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
         return 3;
     }
@@ -303,8 +301,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
-    
-    
+
     //run a repeated start
     if(TW_RepeatedStart() == 0){
         return 5;
@@ -317,13 +314,9 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_ClearInterrupt();
 
     //check if MT of SLA+R was acknowledged
-    
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
         return 6;
     }
-
-    //Clear Inturrupt
-    //TW_ClearInterrupt();
 
     for(i = 0x00; i < size; i++){
         if(i == (size - 1)){
@@ -364,14 +357,14 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
     //Clear Interrupt
     TW_ClearInterrupt();
 
-    //check if the transmission of the register location was acknowledged
-     
+    //check if the transmission of the register location was acknowledged 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
         return 4;
     }
 
-    //TW_Stop();
     return 1;
+
+    
 
 }
 
@@ -380,8 +373,6 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
 int TW_Start(){
     
     //START Command
-    //CLEARMASK((1 << TWSTO), TWCR);
-    //SETMASK((1 << TWINT) | (1 << TWEN) | (1 << TWSTA), TWCR);
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
 
     //Wait for TWINT
@@ -390,12 +381,11 @@ int TW_Start(){
     }
 
     //check if start condition was acknowledged
-     
-    if((TWSR & 0xF8) == I2C_STATUS_START || (TWSR & 0xF8) == I2C_STATUS_REPEAT_START){
-        return 1;
+    if(((TWSR & 0xF8) != I2C_STATUS_START) && ((TWSR & 0xF8) != I2C_STATUS_REPEAT_START)){
+        return 0;
     }
 
-    return 0;
+    return 1;
 
 }
 
