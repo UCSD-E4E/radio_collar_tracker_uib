@@ -15,7 +15,7 @@
 #include "status_decoder.h"
 #include "I2C.h"
 #include <stdio.h>
-#include "sys/time.h"
+
 
 
 #define OBC_BUFFER_LEN  256
@@ -54,8 +54,7 @@ void appMain(void)
     int i = 0;
     int j = 0;
     char user_input = 'b';
-    struct timeval stop, start;
-    unsigned long int time_elapsed_ms;
+
 
     init_check = I2C_Init();
 
@@ -64,11 +63,6 @@ void appMain(void)
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
     }
 
-    gettimeofday(&start, NULL);
-    while(time_elapsed_ms < 100){
-        gettimeofday(&stop, NULL);
-        printf("took %lu us\n", (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec);
-    }
 
 
     ///////Setting up Compass for continuous measurement mode///////////
