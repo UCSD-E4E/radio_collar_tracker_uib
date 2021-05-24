@@ -42,6 +42,7 @@
 #include "cutils.h"
 #ifdef E4E_RTT_UIBv2
 #include <avr/io.h>
+#include <util/delay.h>
 #endif
 
 /******************************************************************************
@@ -221,7 +222,10 @@ int LED_control()
 
     }
 
+#ifdef E4E_RTT_SIM
     fwrite(&led_buf, 1, 1, ledFile);
     fflush(ledFile);
+#endif
+
     return 0;
 }
