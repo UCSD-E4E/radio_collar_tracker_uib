@@ -51,13 +51,13 @@ int Compass_Read(int16_t *pValue)
     uint8_t data_size = 0x06;
     uint32_t timeout_ms = 0x00; //not yet implemented
 
-    signed int16_t dataX = 0x00;
-    signed int16_t dataY = 0x00;
-    signed int16_t dataZ = 0x00;
+    signed int dataX = 0x00;
+    signed int dataY = 0x00;
+    signed int dataZ = 0x00;
 
     float headerRad = 0x00;
     
-    read_check = I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
+    I2C_MasterRegisterReceive(address, register_address, data, data_size, timeout_ms);
 
     dataX = (data[0]) + (data[1] << 8); //String together the MSB and LSB of data for each axis
     dataZ = (data[2]) + (data[3] << 8); 
