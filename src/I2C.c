@@ -107,12 +107,16 @@ int I2C_Init(void)
 
     TWBR = 18;
     //SETFIELD(0, TWPS0, 0x03, TWSR); //this is setting the first prescaler, see what that value needs to be
-    CLEARMASK((1 << TWPS0) | (1 << 0x03) , TWSR);
+    CLEARMASK((1 << TWPS0) | (1 << 0x03) , TWSR); //might need to be a setmask instead
 
     SETMASK((1 << TWEN) | (1 << TWIE) | (1 << TWEA) | (1 << TWINT), TWCR); //learn how to convert to bit mask  1100 0101
 
     return 1;
 }
+
+//Maybe make a compass init, that sends in the correct commands to set up the compass.
+
+
 /**
  * Master Write Function 
  * Takes in data pointer, amount of data, the address of the device the write is being sent to, and a timeout var
@@ -292,11 +296,11 @@ int I2C_MasterReceive(uint8_t deviceAddress, uint8_t* pData, uint16_t size, uint
 int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
     
     uint16_t i;
-    unsigned char user_input = 'b'; //for testing
+    //unsigned char user_input = 'b'; //for testing
 
     //START Command
     if(TW_Start() == 0){
-        //return 2;
+        return 2;
     }
 
     //Set deviceAddress to SLA+W
@@ -308,7 +312,7 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+W was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
-        //return 3;
+        return 3;
     }
 
     //send the register address to the compass
@@ -320,19 +324,19 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if the transmission of the register location was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
     if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
-        //return 4;
+        return 4;
     }
     
     /////////For Testing//////////
-    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
-    while(user_input != 'a'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    }
+    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'a' to continue \n\r");
+    // while(user_input != 'a'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    // }
     //////////////////////////////
     
     //run a repeated start
     if(TW_RepeatedStart() == 0){
-        //return 5;
+        return 5;
     };
 
     //Set deviceAddress to SLA+R
@@ -344,31 +348,77 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     //check if MT of SLA+R was acknowledged
     CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
     if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
-        //return 6;
+        return 6;
     }
 
     for(i = 0x00; i < size; i++){
         
+
         //Record data from the TWDR
         pData[i] = TWDR;
 
+        //if the last byte of data is reached (indicated by a NACK in TWSR) leave the loop
+        if((TWSR & 0xF8) == I2C_STATUS_DATA_R_NACK){
+            break;
+        }
+        
         //Clear Inturrupt
         TW_ClearInterrupt();
 
         //check if MT of SLA+W was acknowledged
         CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
-        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK){
-            //return 7;
+        if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+            return 7;
         }
+
+
     }
     /////////For Testing//////////
-    Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
-    while(user_input != 'b'){
-          Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
-    }
+    // Serial_Printf(HAL_SystemDesc.pOBC, "Press 'b' to continue \n\r");
+    // while(user_input != 'b'){
+    //       Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
+    // }
     //////////////////////////////
     TW_Stop();
     return 1;
+}
+
+int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint32_t timeout_ms){
+
+    uint16_t i;
+
+    //START Command
+    if(TW_Start() == 0){
+        return 2;
+    }
+
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 3;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 4;
+    }
+
+    TW_Stop();
+    return 1;
+
 }
 
 int TW_Start(){
@@ -437,8 +487,84 @@ int TW_ClearInterrupt(){
 
 //This lower section will not be used
 
+//////////Testing Functions/////////////
+int I2C_MasterRegisterReceivePt1(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    uint16_t i;
+    //unsigned char user_input = 'b'; //for testing
 
+    //START Command
+    if(TW_Start() == 0){
+        return 2;
+    }
 
+    //Set deviceAddress to SLA+W
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x00 & 0x01); 
+    
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+W was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_START_W_ACK){
+        return 3;
+    }
+
+    //send the register address to the compass
+    TWDR = registerAddress;
+
+    //Clear Interrupt
+    TW_ClearInterrupt();
+
+    //check if the transmission of the register location was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR); 
+    if((TWSR & 0xF8) != I2C_STATUS_DATA_W_ACK){
+        return 4;
+    }
+    return 1;
+}
+
+int I2C_MasterRegisterReceivePt2(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pData, uint16_t size, uint32_t timeout_ms){
+    
+    uint16_t i;
+    //run a repeated start
+    if(TW_RepeatedStart() == 0){
+        //return 5;
+    };
+
+    //Set deviceAddress to SLA+R
+    TWDR = ((deviceAddress << 1) & 0xFEu) | (0x01 & 0x01);
+
+    //Clear Inturrupt
+    TW_ClearInterrupt();
+
+    //check if MT of SLA+R was acknowledged
+    CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+    if((TWSR & 0xF8) != I2C_STATUS_START_R_ACK){
+        //return 6;
+    }
+
+    for(i = 0x00; i < size; i++){
+        //if((TWSR & 0xF8) == I2C_STATUS_DATA_R_NACK){
+            //Record data from the TWDR
+            pData[i] = TWDR;
+
+            //Clear Inturrupt
+            TW_ClearInterrupt();
+
+            //check if MT of SLA+W was acknowledged
+            CLEARMASK((1 << TWPS0) | (1 << TWPS1), TWSR);
+            if((TWSR & 0xF8) != I2C_STATUS_DATA_R_ACK && (TWSR & 0xF8) != I2C_STATUS_DATA_R_NACK){
+                //return 7;
+            }
+        
+        //}
+
+    }
+
+    //TW_Stop();
+    return 1;
+}
 /*
 
 void I2C_DoStart(I2C_Desc_e *I2C_Desc)
