@@ -418,11 +418,6 @@ NMEA_Message_e NMEA_Decode(char c)
     static int next_field = 0;
     static const NMEA_Function_Ptr_t *messageTable = NULL;
 
-    static char debugBuffer[1024];
-    static uint32_t debugIdx = 0;
-    debugBuffer[debugIdx++] = c;
-
-
     switch(decodeState)
     {
     case START:
@@ -433,8 +428,6 @@ NMEA_Message_e NMEA_Decode(char c)
             next_field = 0;
             message = NMEA_MESSAGE_NONE;
             decodeState = DATA_ID;
-            debugIdx = 0;
-            memset(debugBuffer, 0, 1024);
         }
         break;
     case DATA_ID:
