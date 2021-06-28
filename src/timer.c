@@ -34,9 +34,12 @@ int Timer0Innit(){
 }
 
 int GetTimer0(){
+    uint32_t current_time;
     CLEARMASK((1 << OCIE0A), TIMSK0);
-    return count0;
+    current_time = count0;
     SETMASK((1 << OCIE0A), TIMSK0);
+    return current_time;
+
 }
 
 ISR(TIMER0_COMPA_vect){
