@@ -5,10 +5,13 @@
  *      Author: DavidSalzmann
  */
 
+#ifndef TIMER_H_
+#define TIMER_H_
+
 #include <stdint.h>
 
-uint32_t count0;
 
 int Timer0Innit();
 int GetTimer0();
-void Timer0Increment();
+
+#endif /* TIMER_H_ */
