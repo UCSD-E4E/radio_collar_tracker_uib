@@ -5,7 +5,7 @@
 #include "cutils.h"
 #include "serial.h"
 #include <stddef.h>
-//#include <avr/interrupt.h>
+#include <avr/interrupt.h>
 
 uint32_t count0;
 
@@ -31,6 +31,6 @@ int GetTimer0(){
 
 }
 
-//ISR(TIMER0_COMPA_vect){
-    //count0++;
-//}
+ISR(TIMER0_COMPA_vect){
+    count0++;
+}
