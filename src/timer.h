@@ -8,7 +8,6 @@
 #include <stdint.h>
 
 uint32_t count0;
-bool Timer0IntEn; 
 
 int Timer0Innit();
 int GetTimer0();
