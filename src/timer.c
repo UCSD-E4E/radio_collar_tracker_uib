@@ -1,5 +1,5 @@
 /*
- * I2C.c
+ * timer.c
  *
  *  Created on: June 3, 2021
  *      Author: DavidSalzmann
