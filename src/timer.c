@@ -42,6 +42,6 @@ int GetTimer0(){
 
 }
 
-ISR(TIMER0_COMPA_vect){
-    count0++;
-}
+// ISR(TIMER0_COMPA_vect){
+//     count0++;
+// }
