@@ -68,7 +68,7 @@ void appMain(void)
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
     }
 
-    Timer0Innit();
+    timer_check = Timer0Innit();
 
 
 
