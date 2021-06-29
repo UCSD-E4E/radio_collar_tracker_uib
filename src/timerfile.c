@@ -5,7 +5,10 @@
 #include "cutils.h"
 #include "serial.h"
 #include <stddef.h>
+#include <stdio.h>
+#include <avr/io.h>
 #include <avr/interrupt.h>
+#include <string.h>
 
 uint32_t count0;
 
