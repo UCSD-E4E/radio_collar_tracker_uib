@@ -20,7 +20,7 @@ int Timer0Innit(){
     SETMASK((1 << OCIE0A), TIMSK0); //Set Interrupt enable of Timer 0's output compare register
     OCR0A = 0x7C; //Set the top value of the Output Compare Register A for Timer 0 to be 124
 
-    count0 = 0; //reset Timer0's counter
+    count0 = 0x00000000; //reset Timer0's counter
     return 1;
 
 }
