@@ -91,7 +91,7 @@ void appMain(void)
     while(1)
     {
         timer_value = GetTimer0();
-        Serial_Printf(HAL_SystemDesc.pOBC, "Timer Value: %d\n\r", timer_value);
+        Serial_Printf(HAL_SystemDesc.pOBC, "Timer Value: %lu\n\r", timer_value);
         //DRDY Check on the compass
         //register_address = 0x09;
         //data_size = 0x01;

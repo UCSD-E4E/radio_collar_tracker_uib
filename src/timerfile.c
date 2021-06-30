@@ -10,7 +10,7 @@
 #include <avr/interrupt.h>
 #include <string.h>
 
-unsigned uint32_t count0;
+uint32_t count0;
 
 int Timer0Innit(){
     
