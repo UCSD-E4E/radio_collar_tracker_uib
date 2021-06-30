@@ -54,7 +54,7 @@ void appMain(void)
     int init_check = 0;
     int write_check = 0;
     int timer_check = 0;
-    int timer_value = 0;
+    uint32_t timer_value = 0;
     int register_pointer_check = 0;
     int i = 0;
     int j = 0;
