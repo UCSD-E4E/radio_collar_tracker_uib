@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 
-int Timer0Innit();
-int GetTimer0();
+int Timer3Innit();
+int GetTimer3();
 
 #endif
