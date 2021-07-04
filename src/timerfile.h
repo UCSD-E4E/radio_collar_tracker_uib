@@ -6,8 +6,8 @@
 #include <stdint.h>
 
 
-int Timer3Innit();
-uint32_t GetTimer3();
+int Timer0Innit();
+uint32_t GetTimer0();
 
 
 #endif
