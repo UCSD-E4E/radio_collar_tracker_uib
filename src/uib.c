@@ -55,6 +55,7 @@ void appMain(void)
     int write_check = 0;
     int timer_check = 0;
     uint32_t timer_value = 0;
+    uint16_t counter_value = 0;
     int register_pointer_check = 0;
     int i = 0;
     int j = 0;
@@ -91,7 +92,9 @@ void appMain(void)
     while(1)
     {
         timer_value = GetTimer3();
+        counter_value = GetCounter3();
         Serial_Printf(HAL_SystemDesc.pOBC, "Timer Value: %"PRIu32"\n\r", timer_value);
+        Serial_Printf(HAL_SystemDesc.pOBC, "Counter Value: %"PRIu16"\n\r", counter_value);
         //DRDY Check on the compass
         //register_address = 0x09;
         //data_size = 0x01;

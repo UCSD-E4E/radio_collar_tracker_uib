@@ -35,6 +35,12 @@ int GetTimer3(){
 
 }
 
+int GetCounter3(){
+    uint16_t counter;
+    counter = TCNT3H + (TCNT3L << 8);
+    return counter;
+}
+
 ISR(TIMER3_COMPA_vect){
     count3++;
 }

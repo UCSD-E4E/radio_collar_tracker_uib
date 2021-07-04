@@ -8,5 +8,6 @@
 
 int Timer3Innit();
 int GetTimer3();
+int GetCounter3();
 
 #endif
