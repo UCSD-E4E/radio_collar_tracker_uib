@@ -7,7 +7,8 @@
 
 
 int Timer3Innit();
-int GetTimer3();
-int GetCounter3();
+uint32_t GetTimer3();
+uint16_t GetCounter3();
+uint16_t GetTop();
 
 #endif

@@ -28,7 +28,7 @@ int Timer3Innit(){
 
 }
 
-int GetTimer3(){
+uint32_t GetTimer3(){
     uint32_t current_time;
     CLEARMASK((1 << OCIE3A), TIMSK3);
     current_time = count3;
@@ -37,10 +37,14 @@ int GetTimer3(){
 
 }
 
-int GetCounter3(){
+uint16_t GetCounter3(){
     uint16_t counter;
     counter = TCNT3H + (TCNT3L << 8);
     return counter;
+}
+
+uint16_t GetTop(){
+    return OCR3A;
 }
 
 ISR(TIMER3_COMPA_vect){
