@@ -29,7 +29,7 @@ int Timer3Innit(){
 int GetTimer3(){
     uint32_t current_time;
     CLEARMASK((1 << OCIE3A), TIMSK3);
-    current_time = count0;
+    current_time = count3;
     SETMASK((1 << OCIE3A), TIMSK3);
     return current_time;
 
