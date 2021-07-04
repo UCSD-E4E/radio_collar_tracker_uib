@@ -21,7 +21,8 @@ int Timer3Innit(){
     SETMASK((1 << OCIE3A), TIMSK3); //Set Interrupt enable of Timer 3's output compare register
     //OCR3AH = 0x01; 
     //OCR3AL = 0xF3; //Set the top value of the Output Compare Register A for Timer 3 to be 499, or 0x01F3
-    OCR3A = 0x01F3;
+    //OCR3A = 0x1F3;
+    OCR3A = 0x3E8;
     count3 = 0x00000000; //reset Timer3's counter
     return 1;
 
