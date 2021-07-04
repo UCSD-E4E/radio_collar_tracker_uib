@@ -68,7 +68,7 @@ void appMain(void)
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
     }
 
-    timer_check = Timer0Innit();
+    timer_check = Timer3Innit();
 
 
 
@@ -90,7 +90,7 @@ void appMain(void)
 
     while(1)
     {
-        timer_value = GetTimer0();
+        timer_value = GetTimer3();
         Serial_Printf(HAL_SystemDesc.pOBC, "Timer Value: %zu\n\r", timer_value);
         //DRDY Check on the compass
         //register_address = 0x09;
