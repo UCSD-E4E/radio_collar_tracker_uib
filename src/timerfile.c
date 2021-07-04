@@ -17,8 +17,8 @@ int Timer3Innit(){
     sei();
     SETMASK((1 << CS30) | (1 << WGM32), TCCR3B); //Set CS32:0 to 1 so that Timer 3's clock is ClkIO, or 1Mhz
     CLEARMASK((1 << WGM30) | (1 << WGM31), TCCR3A); //Set WGM13:0 to 4 for Continuos Measurement Mode CTC
-    CLEARMASK((1 << WGM33) | (1 << CS31) | (1 << CS32), TCCR3B); 
-    SETMASK((1 << OCIE3A), TIMSK3); //Set Interrupt enable of Timer 1's output compare register
+    CLEARMASK((1 << WGM33) | (1 << CS31) | (1 << CS32) | (1 << 0x05), TCCR3B); 
+    SETMASK((1 << OCIE3A), TIMSK3); //Set Interrupt enable of Timer 3's output compare register
     OCR3AH = 0x01; 
     OCR3AL = 0xF3; //Set the top value of the Output Compare Register A for Timer 3 to be 499, or 0x01F3
     count3 = 0x00000000; //reset Timer3's counter
