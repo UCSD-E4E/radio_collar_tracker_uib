@@ -70,7 +70,7 @@ void appMain(void)
         Serial_Read(HAL_SystemDesc.pOBC, &user_input, sizeof(user_input));
     }
 
-    timer_check = Timer3Innit();
+    timer_check = Timer0Innit();
 
 
 
@@ -92,7 +92,7 @@ void appMain(void)
 
     while(1)
     {
-        timer_value = GetTimer3();
+        timer_value = GetTimer0();
         //counter_value = GetCounter3();
         //top_value = GetTop();
         Serial_Printf(HAL_SystemDesc.pOBC, "Timer Value: %"PRIu32"\n\r", timer_value);
