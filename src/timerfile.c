@@ -14,7 +14,7 @@ uint32_t count0;
 int Timer0Innit(){
     
     sei();
-    SETMASK((1 << CS01) | (1 << WGM02), TCCR0B); //Set CS0:2 to 2 so that Timer 0's clock is ClkIO/8, or 125kHz
+    SETMASK((1 << CS01) | (1 << WGM02) | (1 << CS00), TCCR0B); //Set CS0:2 to 2 so that Timer 0's clock is ClkIO/8, or 125kHz
     SETMASK((1 << WGM00) | (1 << WGM01), TCCR0A); 
     SETMASK((1 << OCIE0A), TIMSK0); //Set Interrupt enable of Timer 0's output compare register
     OCR0A = 0x7C; //Set the top value of the Output Compare Register A for Timer 0 to be 124
