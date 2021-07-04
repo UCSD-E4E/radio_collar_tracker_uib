@@ -8,7 +8,6 @@
 
 int Timer3Innit();
 uint32_t GetTimer3();
-uint16_t GetCounter3();
-uint16_t GetTop();
+
 
 #endif
