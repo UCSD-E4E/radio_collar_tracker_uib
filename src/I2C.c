@@ -330,7 +330,11 @@ int I2C_MasterRegisterReceive(uint8_t deviceAddress, uint8_t registerAddress, ui
     TW_Stop();
     return 1;
 }
-
+/**
+ * Set Register Function (For Compass)
+ * Writes the pointer value for the compass' register select
+ * @return  1 if successful, otherwise 0
+ */
 int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint32_t timeout_ms){
 
     uint16_t i;
@@ -368,8 +372,15 @@ int I2C_SetRegisterPointer(uint8_t deviceAddress, uint8_t registerAddress, uint3
 
 }
 
+/******************************************************************************
+ * Helper Functions
+ ******************************************************************************/
 
-
+/**
+ * Set Start Function
+ * Write a Start command to the TWCR and check if it gets acknowledged
+ * @return  1 if successful, otherwise 0
+ */
 int TW_Start(){
     
     //START Command
@@ -388,7 +399,11 @@ int TW_Start(){
     return 1;
 
 }
-
+/**
+ * Set Repeated Start Function
+ * Write a Repeated Start command to the TWCR and check if it gets acknowledged
+ * @return  1 if successful, otherwise 0
+ */
 int TW_RepeatedStart(){
     
     //START Command
@@ -408,14 +423,22 @@ int TW_RepeatedStart(){
     return 1;
 
 }
-
+/**
+ * Set Stop Function
+ * Write a Stop command to the TWCR
+ * @return  1 if successful, otherwise 0
+ */
 int TW_Stop(){
     //STOP command
 
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
     return 1;
 }
-
+/**
+ * Clear Interrupt Function
+ *Clear the interrupt bit on the TWCR
+ * @return  1 if successful, otherwise 0
+ */
 int TW_ClearInterrupt(){
     //Clear Inturrupt
 
@@ -425,13 +448,22 @@ int TW_ClearInterrupt(){
     return 1;
 }
 
+/**
+ * Set Acknowledge Function
+ * Set the TWCR to acknowledge a read
+ * @return  1 if successful, otherwise 0
+ */
 uint8_t I2C_ReadAck(){
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
     //wait for TWINT
     while(!(TWCR & (1<<TWINT)));
     return TWDR;
 }
-
+/**
+ * Set Not Acknowledge Function
+ * Set the TWCR to a "not acknowledge", either for an incorrect Status, or for the last bit being read during a read operation
+ * @return  1 if successful, otherwise 0
+ */
 uint8_t I2C_ReadNack(){
     TWCR = (1 << TWINT) | (1 << TWEN);
     //wait for TWINT
