@@ -32,7 +32,7 @@
  * DATE      WHO DESCRIPTION
  * ----------------------------------------------------------------------------
  * 08/23/20  NH  Reorganized includes, fixed initial range, removed FIXME
- * 07/05/20  EL  Compltered compass functions
+ * 07/05/20  EL  Completed compass functions
  * 07/02/20  NH  Fixed value type
  * 07/01/20  NH  Initial commit
  */
@@ -63,7 +63,7 @@ typedef struct Compass_Desc_
 
 /**
  * Compass simulation file map.  This struct should have the same layout as the
- * underlying data store, and can be used if memory mapped files are avilable.
+ * underlying data store, and can be used if memory mapped files are available.
  */
 typedef struct Compass_Sim_File_
 {
@@ -110,7 +110,7 @@ int Compass_Init(Compass_Config_t* pConfig)
     
     int16_t random_num;
     int16_t buffer;
-    time_t random_var;
+    srand(time(NULL));
 
     compassDesc.pFile = fopen(compassDesc.path, "rb");
     if(compassDesc.pFile != NULL)
@@ -122,16 +122,29 @@ int Compass_Init(Compass_Config_t* pConfig)
                 return 1;
             }
         }
-        rewind(compassDesc.pFile);
+        fclose(compassDesc.pFile);
+        compassDesc.pFile = NULL;
     }
+
     if(compassDesc.pFile == NULL)
     {
+        random_num = rand() % 360 - 179;
+
         compassDesc.pFile = fopen(compassDesc.path, "w+b");
+        if(compassDesc.pFile == NULL)
+        {
+            return 0;
+        }
+
+        fwrite(&random_num, 2, 1, compassDesc.pFile);
+
+        fflush(compassDesc.pFile);
+        fclose(compassDesc.pFile);
+        compassDesc.pFile = NULL;
     }
-    srand((unsigned) time(&random_var));
-    random_num = rand() % 360 - 180;
-    fwrite(&random_num, 2, 1, compassDesc.pFile);
-    return 1;
+
+    compassDesc.pFile = fopen(compassDesc.path, "rb");
+    return (compassDesc.pFile == NULL) ? 0 : 1;
 }
 
 /**
@@ -180,7 +193,7 @@ int Compass_Sim_Init(Compass_Sim_Config_t* pConfig)
     else
     {
         compassDesc.path = pConfig->path;
-        return 1;
+        return Compass_Init(pConfig);
     }
 }
 

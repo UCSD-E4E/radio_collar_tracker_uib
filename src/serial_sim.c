@@ -42,6 +42,7 @@
 #include <pthread.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -89,6 +90,7 @@ typedef struct __attribute__((packed)) heartbeatTransport_
 	heartbeatPayload_t payload;
 	uint16_t checksum;
 }heartbeatTransport_t;
+
 /******************************************************************************
  * Global Data
  ******************************************************************************/
@@ -102,12 +104,15 @@ static SerialSim_Desc_t serialTable[] =
 	{SerialDevice_OBC, 0, 0, "./obc_in", "./obc_out", obcSimulator, 0},
 	{SerialDevice_NULL, 0, 0, NULL, NULL, NULL, 0}
 };
+
 /******************************************************************************
  * Local Function Prototypes
  ******************************************************************************/
 static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 		uint8_t sdrState, uint8_t extState, uint8_t strState, uint8_t swState);
 static uint16_t crc16(uint8_t* pData, uint32_t length);
+static int createFIFOPipe(char* name);
+
 /******************************************************************************
  * Function Definitions
  ******************************************************************************/
@@ -124,15 +129,17 @@ SerialSim_Desc_t* SerialSim_FindDevice(SerialDevice_e device)
 	}
 	return NULL;
 }
+
 /**
  * Initializes the Serial descriptor
  * @param  pConfig Serial Configuration
- * @return         1 if successful, otherwise 0
+ * @return         Initialized serial device if successful, otherwise NULL
  */
 SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
 {
 	SerialSim_Desc_t* pDesc = NULL;
-	struct stat buf;
+	int				  flags = 0;
+	int*			  outPipeReader = NULL;
 
 	pDesc = SerialSim_FindDevice(pConfig->device);
 	if(NULL == pDesc)
@@ -141,63 +148,61 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
 		return NULL;
 	}
 
-	if(stat(pDesc->pInPipe, &buf))
-	{
-		if(mkfifo(pDesc->pInPipe, 0777))
+    if(pDesc->pInPipe)
+    {
+        if(!createFIFOPipe(pDesc->pInPipe))
+        {
+            printf("Failed to create input pipe: %s\n", strerror(errno));
+            return NULL;
+        }
+
+        flags |= O_RDONLY | O_NONBLOCK | O_CREAT;
+        pDesc->pIn = open(pDesc->pInPipe, flags, 0777);
+        if(pDesc->pIn == -1)
+        {
+            printf("Failed to open input pipe\n");
+            return NULL;
+        }
+    }
+
+    if(pDesc->pOutPipe)
+    {
+        if(!createFIFOPipe(pDesc->pOutPipe))
+        {
+            printf("Failed to create output pipe: %s\n", strerror(errno));
+            return NULL;
+        }
+
+		outPipeReader = (int*) malloc(sizeof(int));
+		if(NULL == outPipeReader)
 		{
-			printf("Failed to create input pipe\n");
+			printf("Failed to allocate memory for output pipe reader\n");
 			return NULL;
 		}
-	}
-	else
-	{
-		if(!S_ISFIFO(buf.st_mode))
+
+        *outPipeReader = open(pDesc->pOutPipe, O_RDONLY | O_NONBLOCK);
+		if(*outPipeReader == -1)
 		{
-			printf("input pipe cannot be created\n");
-			return NULL;
+			printf("Failed to open output pipe reader: %s\n", strerror(errno));
+			free(outPipeReader);
+            return NULL;
 		}
-	}
 
-	if(stat(pDesc->pOutPipe, &buf))
-	{
-		if(mkfifo(pDesc->pOutPipe, 0777))
-		{
-			printf("Failed to create output pipe\n");
-			return NULL;
-		}
-	}
-	else
-	{
-		if(!S_ISFIFO(buf.st_mode))
-		{
-			printf("output pipe cannot be created\n");
-			return NULL;
-		}
-	}
+        flags |= O_WRONLY | O_CREAT;
+        pDesc->pOut = open(pDesc->pOutPipe, flags, 0777);
+        if(pDesc->pOut == -1)
+        {
+            printf("Failed to open output pipe\n");
+			free(outPipeReader);
+            return NULL;
+        }
+    }
 
-	if(pDesc->simulatorThread != NULL)
-	{
-		pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread, NULL);
-	}
-
-
-	pDesc->pIn = open(pDesc->pInPipe, O_RDONLY | O_NONBLOCK | O_CREAT, 0777);
-	if(pDesc->pIn == -1)
-	{
-		printf("Failed to open input pipe\n");
-		return NULL;
-	}
-
-
-	pDesc->pOut = open(pDesc->pOutPipe, O_WRONLY | O_CREAT, 0777);
-	if(pDesc->pOut == -1)
-	{
-		printf("Failed to open output pipe\n");
-		printf("%s\n", strerror(errno));
-		printf("%s\n", pDesc->pOutPipe);
-		return NULL;
-	}
-
+    if(pDesc->simulatorThread != NULL)
+    {
+        pthread_create(&pDesc->thread, NULL, pDesc->simulatorThread,
+			outPipeReader);
+    }
 
 	return (void*)pDesc;
 }
@@ -211,24 +216,19 @@ SerialDesc_t* Serial_Init(SerialConfig_t* pConfig)
  * @param  pDesc Serial Descriptor
  * @param  pBuf  Pointer to Buffer
  * @param  len   Length of Buffer
- * @return       Number of bytes read
+ * @return       Number of bytes read, -1 on error
  */
 int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 {
-	int retval;
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-	if(NULL == pHandle)
+	if(NULL == pHandle || NULL == pBuf)
 	{
+		printf("Serial_Read: NULL parameter\n");
 		return -1;
 	}
 
-	retval = read(pHandle->pIn, pBuf, len);
-	if(retval == -1)
-	{
-		return 0;
-	}
-	return retval;
+	return read(pHandle->pIn, pBuf, len);
 }
 
 
@@ -239,14 +239,13 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
  * @param  pDesc Serial Descriptor
  * @param  pBuf  Pointer to data
  * @param  len   Length of data
- * @return       1 if successful, otherwise 0
+ * @return       Number of bytes written, -1 on error
  */
 int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 {
-	int retval;
 	SerialSim_Desc_t *pHandle = (SerialSim_Desc_t*) pDesc;
 
-	if(NULL == pHandle)
+	if(NULL == pHandle || NULL == pBuf)
 	{
 		return -1;
 	}
@@ -254,11 +253,10 @@ int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 	// We will be using a 256 byte r/w buffer
 	if(len > 256)
 	{
-		return 0;
+		return -1;
 	}
 
-	retval = write(pHandle->pOut, pBuf, len);
-	return retval;
+	return write(pHandle->pOut, pBuf, len);
 }
 
 /**
@@ -267,27 +265,26 @@ int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len)
 void* gpsSimulator(void* argp)
 {
 
-	const char* filename = "gps.txt";
-	FILE* gpsData = fopen(filename, "r");
+	FILE* gpsData = fopen("gps.txt", "r");
 	char* lineptr = NULL;
 	size_t bufLen = 0;
 	size_t nChars = 0;
 	struct timespec itv = {1, 0};
-    const char* gpsOutPipeName = "gps_out";
-    int gpsOutPipe = open(gpsOutPipeName, O_RDONLY);
-	const char* gpsPipeName = "gps_in";
-	int gpsPipe = open(gpsPipeName, O_WRONLY);
+	int gpsPipe = open("gps_in", O_WRONLY);
+	int gpsOutPipe = *((int*) argp);
 	int run = 1;
 
 	if(!gpsData)
 	{
 		printf("GPS data not found\n!");
+		free(argp);
 		return NULL;
 	}
 
 	if(gpsPipe == -1)
 	{
 		printf("Failed to open GPS pipe\n");
+		free(argp);
 		return NULL;
 	}
 
@@ -297,19 +294,22 @@ void* gpsSimulator(void* argp)
 		switch(nChars)
 		{
 		case 1:
+		case 2:
 			nanosleep(&itv, NULL);
+			break;
+		case -1:
+			run = 0;
 			break;
 		default:
 			// output data to GPS pipe
 			write(gpsPipe, lineptr, nChars);
 			break;
-		case -1:
-			run = 0;
-			break;
-
 		}
 	}
 
+	printf("GPS simulation completed\n");
+	free(argp);
+	free(lineptr);
 	return NULL;
 }
 
@@ -321,11 +321,8 @@ void* obcSimulator(void* argp)
 	uint8_t heartbeatBuffer[25];
 	uint8_t gpsDataBuffer[1024];
 	struct timespec itv = {2, 0};
-	const char* obcOutPipeName = "obc_out";
-	int obcOutPipe = open(obcOutPipeName, O_RDONLY | O_NONBLOCK);
-	const char* obcInPipeName = "obc_in";
-	int obcInPipe = open(obcInPipeName, O_WRONLY);
-	int run = 1;
+	int obcOutPipe = *((int*) argp);
+	int obcInPipe = open("obc_in", O_WRONLY);
 	int nChars = 0;
 	FILE* gpsFile = fopen("gps.bin", "wb");
 
@@ -337,21 +334,19 @@ void* obcSimulator(void* argp)
 	if(obcInPipe == -1)
 	{
 		printf("Failed to open OBC input pipe\n");
+		free(argp);
 		return NULL;
 	}
 
-	if(obcOutPipe == -1)
-	{
-		printf("Failed to open OBC output pipe\n");
-		return NULL;
-	}
 	if(!gpsFile)
 	{
 	    printf("Failed to open GPS output file\n");
 	    printf("%s\n", strerror(errno));
+		free(argp);
 	    return NULL;
 	}
-	while(run)
+
+	while(1)
 	{
 		nChars = encodeHeartbeat(heartbeatBuffer, 25, sysState++ % systemMax,
 				sdrState++ % sdrMax, sensorState++ % sensorMax,
@@ -368,9 +363,12 @@ void* obcSimulator(void* argp)
             fwrite(gpsDataBuffer, nChars, 1, gpsFile);
             fflush(gpsFile);
 		}
+		
 		nanosleep(&itv, NULL);
 
 	}
+
+	free(argp);
 	return NULL;
 }
 
@@ -393,12 +391,18 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	struct timespec spec;
 	uint16_t cksum;
 	uint8_t* pCksum = (uint8_t*) &cksum;
-	uint8_t* pSum = (uint8_t*) &pStruct->checksum;
+	uint8_t* pSum;
 
 	if(bufLen < nBytes)
 	{
 		return -1;
 	}
+
+	if(NULL == pBuf)
+	{
+		return -1;
+	}
+	pSum = (uint8_t*) &pStruct->checksum;
 
 	clock_gettime(CLOCK_REALTIME, &spec);
 
@@ -422,7 +426,7 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	pSum[1] = pCksum[0];
 
 	/*
-	 * Checkk that checksum is valid
+	 * Check that checksum is valid
 	 */
 	if(0 != crc16((uint8_t*) pStruct, sizeof(heartbeatTransport_t)))
 	{
@@ -432,7 +436,6 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 	return nBytes;
 }
 
-#define POLY 0x8408
 /*
 //                                      16   12   5
 // this is the CCITT CRC 16 polynomial X  + X  + X  + 1.
@@ -441,7 +444,6 @@ static int encodeHeartbeat(uint8_t *pBuf, uint32_t bufLen, uint8_t sysState,
 // bit is always assumed to be set, thus we only use 16 bits to
 // represent the 17 bit value.
 */
-
 static uint16_t crc16(uint8_t* pData, uint32_t length)
 {
     uint8_t i;
@@ -452,4 +454,24 @@ static uint16_t crc16(uint8_t* pData, uint32_t length)
             wCrc = wCrc & 0x8000 ? (wCrc << 1) ^ 0x1021 : wCrc << 1;
     }
     return wCrc & 0xffff;
+}
+
+/**
+ * Creates a FIFO pipe if it doesn't exist
+ * @param name Desired name of FIFO pipe
+ * @return     1 if successful, 0 otherwise
+ */
+static int createFIFOPipe(char* name)
+{
+    struct stat buf;
+
+    // Check if a file with the desired name already exists
+    if(stat(name, &buf))
+    {
+        // Attempt to create pipe since it doesn't exist
+        return !mkfifo(name, 0777);
+    }
+
+    // Check if existing file is a FIFO pipe
+    return S_ISFIFO(buf.st_mode);
 }

@@ -147,12 +147,6 @@ int main(int argc, char const *argv[])
  */
 static int init()
 {
-	if(!initSerial())
-	{
-	    printf("Serial init failed\n");
-		return 0;
-	}
-
 	if(!initCompass())
 	{
 		return 0;
@@ -168,7 +162,7 @@ static int init()
 		return 0;
 	}
 
-	if(!LEDInit())
+	if(!LED_init())
 	{
 		return 0;
 	}
@@ -176,6 +170,12 @@ static int init()
 	if(!initNMEA())
 	{
 	    return 0;
+	}
+
+	if(!initSerial())
+	{
+	    printf("Serial init failed\n");
+		return 0;
 	}
 
 	return 1;

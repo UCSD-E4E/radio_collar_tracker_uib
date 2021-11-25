@@ -48,7 +48,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 all: uib.elf
 
 clean:
-	-rm *.o *.elf
+	-rm -f *.o *.elf
 
 %.o: %.c $(DEPDIR)/%.d | $(DEPDIR)
 	$(CC) $(CFLAGS) $<

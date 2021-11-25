@@ -59,7 +59,7 @@ typedef struct Voltage_Desc_
 
 /**
  * Compass simulation file map.  This struct should have the same layout as the
- * underlying data store, and can be used if memory mapped files are avilable.
+ * underlying data store, and can be used if memory mapped files are available.
  */
 typedef struct Voltage_Sim_File_
 {
@@ -102,26 +102,41 @@ int Voltage_Init(void)
     
     int16_t random_num;
     int16_t buffer;
+    srand(time(NULL));
 
     voltageDesc.pFile = fopen(voltageDesc.path, "rb");
     if(voltageDesc.pFile != NULL)
     {
         if(fread(&buffer, 2, 1, voltageDesc.pFile) == 1)
         {
-            if(buffer <= 5000 && buffer >= 0)
+            if(buffer <= 6000 && buffer >= 0)
             {
                 return 1;
             }
         }
-        rewind(voltageDesc.pFile);
+        fclose(voltageDesc.pFile);
+        voltageDesc.pFile = NULL;
     }
+
     if(voltageDesc.pFile == NULL)
     {
+        random_num = rand() % 6001;
+
         voltageDesc.pFile = fopen(voltageDesc.path, "w+b");
+        if(voltageDesc.pFile == NULL)
+        {
+            return 0;
+        }
+
+        fwrite(&random_num, 2, 1, voltageDesc.pFile);
+
+        fflush(voltageDesc.pFile);
+        fclose(voltageDesc.pFile);
+        voltageDesc.pFile = NULL;
     }
-    random_num = rand() % 5000;
-    fwrite(&random_num, 2, 1, voltageDesc.pFile);
-    return 1;
+
+    voltageDesc.pFile = fopen(voltageDesc.path, "rb");
+    return (voltageDesc.pFile == NULL) ? 0 : 1;
 }
 
 /**
@@ -169,7 +184,7 @@ int Voltage_Sim_Init(Voltage_Sim_Config_t* pConfig)
     else
     {
         voltageDesc.path = (char *)pConfig->path;
-        return 1;
+        return Voltage_Init();
     }
 }
 

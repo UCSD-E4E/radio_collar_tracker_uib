@@ -39,12 +39,20 @@ src/nmeaTestData.txt
 
 src/main
 
-src/uibWinBuild
 /.metadata/
 
+# Simulator Files
+src/compassSim
+src/gps_in
+src/gps_out
 src/gps.bin
 **.exe
 *.d
+src/led.bin
+src/obc_in
+src/obc_out
+src/voltageSim
+src/uibWinBuild
 
 src/.cproject
 
