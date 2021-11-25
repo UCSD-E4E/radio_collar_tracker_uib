@@ -27,3 +27,10 @@ callgrind.out.*
 oprofile_data
 doxygen-doc
 **.svg
+*.d
+
+src/.cproject
+
+.cproject
+
+.project
