@@ -1,12 +1,14 @@
 {
 	"folders": [
 		{
-			"path": ".."
+			"path": "."
 		}
 	],
 	"settings": {
 		"files.associations": {
 			"status_decoder.h": "c"
-		}
+		},
+		"makefile.makefilePath": "src/Makefile",
+		"makefile.makeDirectory": "src"
 	}
 }
