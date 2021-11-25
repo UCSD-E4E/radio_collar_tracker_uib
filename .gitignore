@@ -44,3 +44,10 @@ src/uibWinBuild
 
 src/gps.bin
 **.exe
+*.d
+
+src/.cproject
+
+.cproject
+
+.project
