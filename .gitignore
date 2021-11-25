@@ -43,3 +43,4 @@ src/uibWinBuild
 /.metadata/
 
 src/gps.bin
+**.exe
