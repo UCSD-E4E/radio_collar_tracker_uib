@@ -22,39 +22,45 @@
 # 
 # DATE      WHO DESCRIPTION
 # -----------------------------------------------------------------------------
-# 08/30/20  NH  Initial commit
+# 08/23/20  NH  Added additional warnings, removed main target
+# 08/09/20  NH  Added all, fixed simulation build objects
+# 08/07/20  NH  Added UIB simulation build
+# 07/02/20  NH  Rename to Makefile, added dependency checking
+# 07/01/20  NH  Initial Commit
+# 
 ################################################################################
 
-CC = avr-gcc
-LD = avr-gcc
+CC=gcc
+SRCS = main.c nmea.c voltage_sim.c compass_sim.c sensor_encoder.c status_decoder.c sensor_module.c LED_module.c uibWinBuild.c serial_sim.c
+CFLAGS = -std=gnu11 -c -g -Wall -Wextra -Wabi -Wformat -Wformat-nonliteral -Wformat-signedness
+LDLIBS = -lpthread
 
-DEVICE		=	atmega32u4
-CLOCK		=	16000000
+SIM_OBJS = compass_sim.o voltage_sim.o serial_sim.o
 
-MACRO_DEFS	=	-DF_CPU=$(CLOCK) -DUSB_VID=0x2341 -DUSB_PID=0x8036 -DARDUINO=105 -D__PROG_TYPES_COMPAT__
-
-CFLAGS = -std=gnu11 -c -g -Wall -Wextra -ffunction-sections -fdata-sections $(MACRO_DEFS) -mmcu=$(DEVICE) -Os 
-LDFLAGS = -Os -Wl,--gc-sections -mmcu=$(DEVICE) -lm
-LDLIBS = -lm
-
-SRCS = uib.c LED_module.c CDC.c cutils.c serial.c USBCore.c sensor_module.c \
-	status_decoder.c sensor_encoder.c nmea.c compass.c voltage.c I2C.c timerfile.c
-COBJS = $(SRCS:%.c=%.o)
+TEST_OBJS = sensor_encoder.o status_decoder.o sensor_module.o LED_module.o
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
+
 .PHONY: clean all
-all: uib.elf
+
+all: uibWinBuild
+
+uibWinBuild: uibWinBuild.o nmea.o $(SIM_OBJS) $(TEST_OBJS)
+
+%.o : %.c
+%.o : %.c $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 clean:
-	-rm *.o *.elf
+	-rm *.o uibWinBuild
 
-%.o: %.c $(DEPDIR)/%.d | $(DEPDIR)
-	$(CC) $(CFLAGS) $<
-	
-uib.elf: $(COBJS)
-	${LD} -o $@ $^ $(LDFLAGS)
-	
-load: uib.elf
-	avrdude -p m32u4 -c dragon_isp -B 4 -P usb -U flash:w:$<
+$(DEPDIR): ; @mkdir -p $@
+
+DEPFILES := $(SRCS:%.c=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
