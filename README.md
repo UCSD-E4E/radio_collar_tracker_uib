@@ -25,3 +25,6 @@
 ### Flashing
 1.	`Terminal`->`Run Build Task...`
 2.	`load`
+
+# Design
+This firmware interfaces directly with https://github.com/UCSD-E4E/radio_collar_tracker_dsp.  Specifically, this interface is defined in https://docs.google.com/document/d/14ioMmYNFMKBtVLmMo5gNkNCl2NU-8zxb9vj9jLmXJUI/edit?usp=sharing.

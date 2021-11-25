@@ -17,7 +17,9 @@
 			"ms-vscode.cpptools-extension-pack",
 			"ms-vscode.cpptools-themes",
 			"austin.code-gnu-global",
-			"ms-vscode.makefile-tools"
+			"ms-vscode.makefile-tools",
+			"ms-python.vscode-pylance",
+			"ms-python.python"
 		]
 	}
 }
