@@ -2,11 +2,15 @@
 ## Getting Started
 ### Required Software
 1.	`git`
-2.	`avr-gcc`
-3.	`build-essential`
-4.	`avrdude`
-5.	VS Code
-6.	Ubuntu 18.04 or later
+2.	`build-essential`
+3.	`avrdude`
+4.	`binutils-avr`
+5.	`gcc-avr`
+6.	`avr-libc`
+7.	`libftdi1`
+8.	`libusb-0.1-4`
+9.	VS Code
+10.	Ubuntu 18.04 or later
 
 ### Procedure
 1.	`git clone https://github.com/UCSD-E4E/radio_collar_tracker_uib.git`
