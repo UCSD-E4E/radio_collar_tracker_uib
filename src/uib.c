@@ -11,23 +11,19 @@
 #include "cutils.h"
 #include "LED_module.h"
 #include "sensor_module.h"
-#include "serial.h"
 #include "status_decoder.h"
 #include "I2C.h"
 #include "timerfile.h"
 #include <stdio.h>
 #include <util/atomic.h>
 #include <avr/interrupt.h>
-
+#include "uib.h"
+#include "log.h"
 
 
 #define OBC_BUFFER_LEN  256
 
-typedef struct HAL_System_
-{
-    SerialDesc_t* pOBC;
-    SerialDesc_t* pGPS;
-}HAL_System_t;
+
 HAL_System_t HAL_SystemDesc, *pHalSystem = &HAL_SystemDesc;
 
 static int initHW(void);
@@ -35,12 +31,14 @@ static void initTimer(void);
 static int initSerial(void);
 static int initUSBSerial(void);
 static int initHWSerial(void);
+static int initNMEA(void);
 
 void appMain(void)
 {
     uint8_t rxBuf[64];
     int nchars;
     DataStatusPacket_t status_data;
+
 
     while(1)
     {
@@ -80,20 +78,25 @@ int main()
         while(1)
             ;
     }
+    Log_Open(pHalSystem->pOBC);
 
     LED_setState(LED_COMBINED_STATE, LED_1HZ);
+    if(initNMEA())
+    {
+        while(1)
+        ;
+    }
     appMain();
 }
 
 static int initHW(void)
 {
-    LED_init();
-    initTimer();
-
     if(!initSerial())
     {
         return 0;
     }
+    LED_init();
+    initTimer();
     return 1;
 }
 static void initTimer(void)
@@ -150,4 +153,12 @@ static int initHWSerial(void)
         return 0;
     }
     return 1;
+}
+
+static int initNMEA(void)
+{
+    NMEA_Config_t config;
+    config.messageMask = NMEA_MESSAGE_GGA | NMEA_MESSAGE_RMC | NMEA_MESSAGE_ZDA;
+    NMEA_Init(&config);
+    return 0;
 }

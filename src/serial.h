@@ -102,4 +102,5 @@ int Serial_Read(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
 int Serial_Write(SerialDesc_t* pDesc, uint8_t* pBuf, uint32_t len);
 
 void Serial_Printf(SerialDesc_t* pDesc, const char* pFmt, ...);
+void Serial_vprintf(SerialDesc_t* pDesc, const char* pFmt, va_list vargs);
 #endif /* __SERIAL_H__ */

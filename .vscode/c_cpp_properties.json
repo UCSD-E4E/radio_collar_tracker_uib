@@ -1,19 +1,24 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "avr-gcc",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${default}"
             ],
             "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
+                "F_CPU=16000000",
+                "USB_VID=0x2341",
+                "USB_PID=0x8036",
+                "ARDUINO=105",
+                "__PROG_TYPES_COMPAT__"
             ],
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "compilerPath": "/usr/bin/avr-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-mmcu=atmega32u4"
+            ]
         }
     ],
     "version": 4

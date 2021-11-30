@@ -39,6 +39,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "uib.h"
+#include "serial.h"
+
 #include "cutils.h"
 #ifdef E4E_RTT_UIBv2
 #include <avr/io.h>
@@ -79,12 +82,13 @@ static FILE* ledFile;
 #ifdef E4E_RTT_UIBv2
 static const LED_Map_t LED_table[] =
 {
-{LED_SYSTEM_STATE, &PORTD, &DDRD, PORTD4},
-{LED_STORAGE_STATE, &PORTD, &DDRD, PORTD6},
-{LED_SDR_STATE, &PORTD, &DDRD, PORTD7},
-{LED_GPS_STATE, &PORTB, &DDRB, PORTB4},
-{LED_COMBINED_STATE, &PORTB, &DDRB, PORTB5},
-{LED_MAPPING_END, NULL, NULL, 0}};
+    {LED_SYSTEM_STATE,      &PORTD, &DDRD,  PORTD4},
+    {LED_STORAGE_STATE,     &PORTD, &DDRD,  PORTD6},
+    {LED_SDR_STATE,         &PORTD, &DDRD,  PORTD7},
+    {LED_GPS_STATE,         &PORTB, &DDRB,  PORTB4},
+    {LED_COMBINED_STATE,    &PORTB, &DDRB,  PORTB5},
+    {LED_MAPPING_END,       NULL,   NULL,   0}
+};
 #endif
 /******************************************************************************
  * Local Function Prototypes
@@ -116,9 +120,10 @@ int LED_init()
         SETBIT(pEntry->bit, *pEntry->dir);
         SETBIT(pEntry->bit, *pEntry->port);
         led_state[pEntry->LED] = LED_OFF;
-        _delay_ms(200);
+        _delay_ms(100);
         pEntry++;
-    }
+        Serial_Printf(pHalSystem->pOBC, "LED %08x\n", pEntry);
+    } 
 #endif
     return 1;
 }

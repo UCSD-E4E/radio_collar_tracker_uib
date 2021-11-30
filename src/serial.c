@@ -21,6 +21,7 @@
 #include "LED_module.h"
 #include "USBCore.h"
 #include "USBDesc.h"
+#include "uib.h"
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -284,5 +285,14 @@ void Serial_Printf(SerialDesc_t *pDesc, const char *pFmt, ...)
     va_start(vargs, pFmt);
     vsnprintf(Serial_printfBuffer, PRINTF_BUFFER_LEN, pFmt, vargs);
     va_end(vargs);
+    Serial_Write(pDesc, (void*) Serial_printfBuffer, strlen(Serial_printfBuffer));
+}
+
+void Serial_vprintf(SerialDesc_t* pDesc, const char* pFmt, va_list vargs)
+{
+    vsnprintf(Serial_printfBuffer, PRINTF_BUFFER_LEN, pFmt, vargs);
+    // Serial_Write(pHalSystem->pOBC, (void*) Serial_printfBuffer, strlen(Serial_printfBuffer));
+    // Serial_Printf(pHalSystem->pOBC, "pHalSystem->pOBC: 0x%08x\n", pHalSystem->pOBC);
+    // Serial_Printf(pHalSystem->pOBC, "pDesc: 0x%08x\n", pDesc);
     Serial_Write(pDesc, (void*) Serial_printfBuffer, strlen(Serial_printfBuffer));
 }

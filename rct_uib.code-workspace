@@ -6,7 +6,9 @@
 	],
 	"settings": {
 		"files.associations": {
-			"status_decoder.h": "c"
+			"status_decoder.h": "c",
+			"serial.h": "c",
+			"interrupt.h": "c"
 		},
 		"makefile.makefilePath": "src/Makefile",
 		"makefile.makeDirectory": "src"

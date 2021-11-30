@@ -40,6 +40,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "log.h"
+#include "uib.h"
 /******************************************************************************
  * Defines
  ******************************************************************************/
@@ -54,7 +56,7 @@
 typedef struct messageIDEntry_
 {
 	NMEA_Message_e msg;	//!< Message enumeration
-	char str[4];	//!< 3 character string to match.  Must be null terminated
+	char* str;	//!< 3 character string to match.  Must be null terminated
 }messageIDEntry_t;
 
 /**
@@ -67,8 +69,15 @@ typedef enum state_
     TALKER_ID,
     MESSAGE_TYPE,
     FIELDS,
-    CHECKSUM
+    CHECKSUM,
+    state__NELEMS
 } state_e;
+
+typedef struct NMEA_StateStr_
+{
+    state_e state;
+    const char* name;
+}NMEA_StateStr_t;
 
 /**
  * Describes the table structure for the tables in nmea.c
@@ -96,6 +105,18 @@ NMEA_Data_u NMEA_Data;
 static char dataID;
 static char talkerID;
 static uint32_t messageMask;
+static int initialized = 0;
+
+static const NMEA_StateStr_t NMEA_StateMap[] = 
+{
+    {START, "START"},
+    {DATA_ID, "DATA_ID"},
+    {TALKER_ID, "TALKER_ID"},
+    {MESSAGE_TYPE, "MESSAGE_TYPE"},
+    {FIELDS, "FIELDS"},
+    {CHECKSUM, "CHECKSUM"},
+    {state__NELEMS, NULL}
+};
 
 /******************************************************************************
  * Local Function Prototypes
@@ -112,6 +133,8 @@ static void parseS8_FF(char token[], void *type);
 static void parseS32_FF(char token[], void *year);
 static NMEA_Message_e decodeMessage(char* messageString);
 static const NMEA_Function_Ptr_t* getTable(NMEA_Message_e messageType);
+
+static const char* NMEA_GetStateName(state_e state);
 
 /******************************************************************************
  * Tables
@@ -183,7 +206,7 @@ static const messageIDEntry_t MessageID_Table[] =
     {NMEA_MESSAGE_RMC, "RMC"},
     {NMEA_MESSAGE_ZDA, "ZDA"},
     {NMEA_MESSAGE_VTG, "VTG"},
-    {NMEA_MESSAGE_NONE, "\0"}
+    {NMEA_MESSAGE_NONE, NULL}
 };
 
 /******************************************************************************
@@ -395,6 +418,7 @@ static void parseS32_FF(char token[], void *year)
 void NMEA_Init(NMEA_Config_t* pConfig)
 {
     messageMask = pConfig->messageMask;
+    initialized = 1;
 }
 
 /**
@@ -417,6 +441,11 @@ NMEA_Message_e NMEA_Decode(char c)
     static char str[STRLENGTH];
     static int next_field = 0;
     static const NMEA_Function_Ptr_t *messageTable = NULL;
+    if(!initialized)
+    {
+        LOG_CRIT(LOG_SUBSYSTEM_NMEA, "NMEA not initialized");
+    }
+    LOG_DEBUG(LOG_SUBSYSTEM_NMEA, "NMEA: %02hhx, %c, %s", c, c, NMEA_GetStateName(decodeState));
 
     switch(decodeState)
     {
@@ -448,6 +477,7 @@ NMEA_Message_e NMEA_Decode(char c)
         {
             str[counter] = '\0';
             message = decodeMessage(str);
+            LOG_DEBUG(LOG_SUBSYSTEM_NMEA, "Got message %d", message);
             messageTable = getTable(message);
 
             counter = 0;
@@ -456,6 +486,7 @@ NMEA_Message_e NMEA_Decode(char c)
         checksum ^= c;
         break;
     case FIELDS:
+        LOG_DEBUG(LOG_SUBSYSTEM_NMEA, "Field: counter: %d, next_field: %d", counter, next_field);
         if(c != ',' && c != '*' && counter < STRLENGTH)
         {
             str[counter++] = c;
@@ -516,10 +547,16 @@ NMEA_Message_e NMEA_Decode(char c)
 static NMEA_Message_e decodeMessage(char* messageString)
 {
     const messageIDEntry_t *pEntry = MessageID_Table;
+    LOG_INFO(LOG_SUBSYSTEM_NMEA, "Decoding %s", messageString);
     while(pEntry->msg != NMEA_MESSAGE_NONE)
     {
+        LOG_DEBUG(LOG_SUBSYSTEM_NMEA, "Comparing against %s", pEntry->str);
         if(strcmp(messageString, pEntry->str) == 0)
         {
+            if((pEntry->msg & messageMask) == 0)
+            {
+                LOG_WARN(LOG_SUBSYSTEM_NMEA, "%s not enabled", messageString);
+            }
             return pEntry->msg & messageMask;
         }
         else
@@ -548,4 +585,17 @@ static const NMEA_Function_Ptr_t* getTable(NMEA_Message_e messageType)
     default:
         return NULL;
     }
+}
+
+static const char* NMEA_GetStateName(state_e state)
+{
+    const NMEA_StateStr_t* pNode;
+    for(pNode = NMEA_StateMap; pNode->name; pNode++)
+    {
+        if(pNode->state == state)
+        {
+            return pNode->name;
+        }
+    }
+    return NULL;
 }
