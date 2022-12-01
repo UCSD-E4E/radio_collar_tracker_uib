@@ -29,5 +29,8 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3
       with:
-        path: src/ui_core.elf src/ui_core.hex
+        name: "Build Outputs"
+        path: |
+          src/ui_core.elf
+          src/ui_core.hex
        
