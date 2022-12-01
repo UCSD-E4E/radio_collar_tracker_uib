@@ -101,11 +101,11 @@ int Sensor_Module::decode(const char c) {
 				&& gps.term(0)[4] == 'A') {
 			// have GGA message
 			switch (gps.term(6)[0]) {
-			case '0':
+			case '0':	// Invalid, no position available
 				packet.fix = GPS_FIX_NONE;
 				*state_var = GPS_INIT;
 				break;
-			default:
+			default:	// All other types of fixes
 				packet.fix = GPS_FIX_FIX;
 				*state_var = GPS_READY;
 				break;
