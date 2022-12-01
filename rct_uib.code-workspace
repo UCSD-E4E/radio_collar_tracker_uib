@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"status_decoder.h": "c",
+			"serial.h": "c",
+			"interrupt.h": "c"
+		},
+		"makefile.makefilePath": "src/Makefile",
+		"makefile.makeDirectory": "src"
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools",
+			"ms-vscode.cpptools-extension-pack",
+			"ms-vscode.cpptools-themes",
+			"austin.code-gnu-global",
+			"ms-vscode.makefile-tools",
+			"ms-python.vscode-pylance",
+			"ms-python.python"
+		]
+	}
+}

@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "avr-gcc",
+            "includePath": [
+                "${default}"
+            ],
+            "defines": [
+                "F_CPU=16000000",
+                "USB_VID=0x2341",
+                "USB_PID=0x8036",
+                "ARDUINO=105",
+                "__PROG_TYPES_COMPAT__"
+            ],
+            "compilerPath": "/usr/bin/avr-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-mmcu=atmega32u4"
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}
