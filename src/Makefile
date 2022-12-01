@@ -35,6 +35,8 @@ OBC_HOST	=	100.80.229.30
 
 .PHONY: all install clean install-dragon install-upcore
 
+all: $(ELF) $(HEX)
+
 $(HEX): $(ELF)
 	${OBJCOPY} -j .text -j .data -O ihex $< $@
 
