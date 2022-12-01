@@ -1,0 +1,31 @@
+name: AVR Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - "*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up environment
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: git build-essential avrdude binutils-avr gcc-avr avr-libc libftdi1 libusb-0.1-4
+        version: 1.0
+    - name: Build
+      run: |
+        cd src
+        make all
+        cd ..
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: src/ui_core.elf src/ui_core.hex
+       
