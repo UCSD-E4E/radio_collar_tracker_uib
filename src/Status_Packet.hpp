@@ -15,20 +15,25 @@ typedef enum{
  * Storage Subsystem state.
  */
 enum StorageState{
-	STR_INIT = 0,
-	STR_READY = 1,
-	STR_FAIL = 2,
-	STR_RETRY = 3
+	STR_GET_OUTPUT_DIR = 0,
+	STR_CHECK_OUTPUT_DIR = 1,
+	STR_CHECK_SPACE = 2,
+	STR_WAIT_RECYCLE = 3,
+	STR_READY = 4,
+	STR_FAIL = 5,
+	STR__SIZE
 };
 
 /**
  * SDR Subsystem state.
  */
 enum SDRState{
-	SDR_INIT = 0,
-	SDR_READY = 1,
-	SDR_FAIL = 2,
-	SDR_RETRY = 3
+	SDR_FIND_DEVICES = 0,
+	SDR_WAIT_RECYCLE = 1,
+	SDR_USRP_PROBE = 2,
+	SDR_READY = 3,
+	SDR_FAIL = 4,
+	SDR__SIZE
 };
 
 /**
@@ -36,10 +41,13 @@ enum SDRState{
  */
 enum SystemState{
 	SYS_INIT = 0,
-	SYS_WAIT_FOR_START = 1,
-	SYS_WAIT_FOR_END = 2,
-	SYS_FINISH = 3,
-	SYS_FAIL = 4,
+	SYS_WAIT_INIT = 1,
+	SYS_WAIT_START = 2,
+	SYS_START = 3,
+	SYS_WAIT_FOR_END = 4,
+	SYS_FINISH = 5,
+	SYS_FAIL = 6,
+	SYS__SIZE
 };
 
 /**

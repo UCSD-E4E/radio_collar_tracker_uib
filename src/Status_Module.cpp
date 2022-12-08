@@ -4,8 +4,8 @@
 Status_Module::Status_Module() : state(CHECK_FOR_START){
 	status = &_status;
 	_own_status = 1;
-	status->storage = STR_INIT;
-	status->sdr = SDR_INIT;
+	status->storage = STR_GET_OUTPUT_DIR;
+	status->sdr = SDR_FIND_DEVICES;
 	status->system = SYS_INIT;
 	status->gps = GPS_INIT;
 }
@@ -13,8 +13,8 @@ Status_Module::Status_Module() : state(CHECK_FOR_START){
 Status_Module::Status_Module(StatusPacket* packet) : state(CHECK_FOR_START){
 	status = packet;
 	_own_status = 0;
-	status->storage = STR_INIT;
-	status->sdr = SDR_INIT;
+	status->storage = STR_GET_OUTPUT_DIR;
+	status->sdr = SDR_FIND_DEVICES;
 	status->system = SYS_INIT;
 }
 

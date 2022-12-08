@@ -131,9 +131,9 @@ ISR( TIMER1_COMPA_vect ) { //timer1 interrupt 1Hz
 }
 
 LEDState system_map[5] {FAST, OFF, SLOW, ON, OFF};
-LEDState storage_map[4] {FAST, ON, OFF, SLOW};
-LEDState sdr_map[4] {FAST, ON, OFF, SLOW};
-LEDState gps_map[4] {FAST, ON, OFF, SLOW};
+LEDState storage_map[STR__SIZE] {FAST, FAST, FAST, SLOW, ON, SLOW};
+LEDState sdr_map[SDR__SIZE] {FAST, SLOW, FAST, ON, SLOW};
+LEDState gps_map[SYS__SIZE] {FAST, FAST, FAST, ON, OFF, OFF, SLOW};
 
 void loop() {
 	if (pHALSystem->RCT_SerialGPS->available() > 0){
@@ -153,7 +153,7 @@ void loop() {
 			orange.ledstate = sdr_map[status.sdr];
 			yellow.ledstate = gps_map[status.gps];
 			
-			if( status.system == SYS_WAIT_FOR_START
+			if( status.system == SYS_WAIT_START
 				&& status.storage == STR_READY
 				&& status.sdr == SDR_READY
 				&& status.gps == GPS_READY ) {
